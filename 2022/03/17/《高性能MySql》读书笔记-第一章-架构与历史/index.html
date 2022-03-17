@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+
+<head>
+    
+    <title>《高性能MySql》读书笔记--第一章 架构与历史 - Tiki Xiang的博客</title>
+    <meta charset="UTF-8">
+    <meta name="keywords" content="博客;tiki;xiang">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    
+    
+
+    <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon" />
+    <meta name="description" content="架构与历史Mysql逻辑架构">
+<meta property="og:type" content="article">
+<meta property="og:title" content="《高性能MySql》读书笔记--第一章 架构与历史">
+<meta property="og:url" content="http://blog.tiki-xiang.cn/2022/03/17/%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%B8%80%E7%AB%A0-%E6%9E%B6%E6%9E%84%E4%B8%8E%E5%8E%86%E5%8F%B2/index.html">
+<meta property="og:site_name" content="Tiki Xiang的博客">
+<meta property="og:description" content="架构与历史Mysql逻辑架构">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-03-17T11:26:52.000Z">
+<meta property="article:modified_time" content="2022-03-17T11:44:55.104Z">
+<meta property="article:author" content="Tiki Xiang">
+<meta property="article:tag" content="高性能MySql">
+<meta property="article:tag" content="MySql">
+<meta property="article:tag" content="数据库">
+<meta name="twitter:card" content="summary">
+    <link rel="stylesheet" href="/lib/jquery.fancybox.min.css?v=1647517914909">
+    
+        <link rel="stylesheet" href="//at.alicdn.com/t/font_3253964_4orv58tg7c4.css">
+    
+    <link rel="stylesheet" href="/lib/mdui_043tiny/css/mdui.css?v=1647517914909">
+    <link rel="stylesheet" href="/lib/iconfont/iconfont.css?v=1647517914909">
+    <link rel="stylesheet" href="/css/style.css?v=1647517914909">
+     
+    
+        <link rel="stylesheet" href="/custom.css">
+    
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+<body class="mdui-drawer-body-left">
+    
+    <div id="nexmoe-background">
+        <div class="nexmoe-bg" style="background-image: url(/images/back.jpg)"></div>
+        <div class="mdui-appbar mdui-shadow-0">
+            <div class="mdui-toolbar">
+                <a mdui-drawer="{target: '#drawer', swipe: true}" title="menu" class="mdui-btn mdui-btn-icon mdui-ripple"><i class="mdui-icon nexmoefont icon-menu"></i></a>
+                <div class="mdui-toolbar-spacer"></div>
+                <!--<a href="javascript:;" class="mdui-btn mdui-btn-icon"><i class="mdui-icon material-icons">search</i></a>-->
+                <a href="/" title="Tiki Xiang" class="mdui-btn mdui-btn-icon"><img src="/images/pic2.jpg" alt="Tiki Xiang"></a>
+            </div>
+        </div>
+    </div>
+    <div id="nexmoe-header">
+        <div class="nexmoe-drawer mdui-drawer" id="drawer">
+    <div class="nexmoe-avatar mdui-ripple">
+        <a href="/" title="Tiki Xiang">
+            <img src="/images/pic2.jpg" alt="Tiki Xiang" alt="Tiki Xiang">
+        </a>
+    </div>
+    <div class="nexmoe-count">
+        <div><span>文章</span>5</div>
+        <div><span>标签</span>3</div>
+        <div><span>分类</span>1</div>
+    </div>
+    <div class="nexmoe-list mdui-list" mdui-collapse="{accordion: true}">
+        
+        <a class="nexmoe-list-item mdui-list-item mdui-ripple false" href="/" title="回到首页">
+            <i class="mdui-list-item-icon nexmoefont icon-fire-bollon"></i>
+            <div class="mdui-list-item-content">
+                回到首页
+            </div>
+        </a>
+        
+        <a class="nexmoe-list-item mdui-list-item mdui-ripple false" href="/archive.html" title="文章归档">
+            <i class="mdui-list-item-icon nexmoefont icon-sun"></i>
+            <div class="mdui-list-item-content">
+                文章归档
+            </div>
+        </a>
+        
+        <a class="nexmoe-list-item mdui-list-item mdui-ripple false" href="/about.html" title="关于博客">
+            <i class="mdui-list-item-icon nexmoefont icon-unbrella"></i>
+            <div class="mdui-list-item-content">
+                关于博客
+            </div>
+        </a>
+        
+        <a class="nexmoe-list-item mdui-list-item mdui-ripple false" href="/friends.html" title="我的朋友">
+            <i class="mdui-list-item-icon nexmoefont icon-watermellon"></i>
+            <div class="mdui-list-item-content">
+                我的朋友
+            </div>
+        </a>
+        
+    </div>
+    <aside id="nexmoe-sidebar">
+    
+    <div class="nexmoe-widget-wrap">
+    <div class="nexmoe-widget nexmoe-search">
+         
+            <form id="search_form" action_e="https://cn.bing.com/search?q=localhost:4000# 搜索引擎地址，在type为swiftype时无效 e.g:https://www.google.com/search?q={你的博客链接}" onsubmit="return search();">
+                <label><input id="search_value" name="q" type="search" placeholder="搜索"></label>
+            </form>
+         
+    </div>
+</div>
+    
+    <div class="nexmoe-widget-wrap">
+    <div class="nexmoe-widget nexmoe-social">
+        <a class="mdui-ripple" href="https://jq.qq.com/?_wv=1027&k=5CfKHun" target="_blank" mdui-tooltip="{content: 'QQ群'}" style="color: rgb(249, 174, 8);background-color: rgba(249, 174, 8, .1);">
+            <i class="nexmoefont icon-QQ"></i>
+        </a><a class="mdui-ripple" href="https://space.bilibili.com/20238211" target="_blank" mdui-tooltip="{content: '哔哩哔哩'}" style="color: rgb(231, 106, 141);background-color: rgba(231, 106, 141, .15);">
+            <i class="nexmoefont icon-bilibili"></i>
+        </a><a class="mdui-ripple" href="https://github.com/nexmoe/" target="_blank" mdui-tooltip="{content: 'GitHub'}" style="color: rgb(25, 23, 23);background-color: rgba(25, 23, 23, .15);">
+            <i class="nexmoefont icon-github"></i>
+        </a>
+    </div>
+</div>
+    
+    
+  <div class="nexmoe-widget-wrap">
+    <h3 class="nexmoe-widget-title">文章分类</h3>
+    <div class="nexmoe-widget">
+
+      <ul class="category-list">
+
+        
+
+
+        
+
+        
+
+        <li class="category-list-item">
+          <a class="category-list-link" href="/categories/读书笔记/">读书笔记</a>
+          <span class="category-list-count">5</span>
+        </li>
+
+        
+      </ul>
+
+    </div>
+  </div>
+
+
+    
+    
+  <div class="nexmoe-widget-wrap">
+    <div id="randomtagcloud" class="nexmoe-widget tagcloud nexmoe-rainbow">
+      <a href="/tags/MySql/" style="font-size: 10px;">MySql</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 10px;">数据库</a> <a href="/tags/%E9%AB%98%E6%80%A7%E8%83%BDMySql/" style="font-size: 10px;">高性能MySql</a>
+    </div>
+    
+  </div>
+
+    
+    
+  <div class="nexmoe-widget-wrap">
+    <h3 class="nexmoe-widget-title">文章归档</h3>
+    <div class="nexmoe-widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/">2022</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+
+    
+    
+  <div class="nexmoe-widget-wrap">
+    <h3 class="nexmoe-widget-title">最新文章</h3>
+    <div class="nexmoe-widget">
+      <ul>
+        
+          <li>
+            <a href="/2022/03/17/%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%BA%94%E7%AB%A0-%E5%88%9B%E5%BB%BA%E9%AB%98%E6%80%A7%E8%83%BD%E7%9A%84%E7%B4%A2%E5%BC%95/">《高性能MySql》读书笔记--第五章 创建高性能的索引</a>
+          </li>
+        
+          <li>
+            <a href="/2022/03/17/%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E5%9B%9B%E7%AB%A0-Schema%E4%B8%8E%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E4%BC%98%E5%8C%96/">《高性能MySql》读书笔记--第四章 Schema与数据类型优化</a>
+          </li>
+        
+          <li>
+            <a href="/2022/03/17/%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%B8%89%E7%AB%A0-%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%80%A7%E8%83%BD%E5%89%96%E6%9E%90/">《高性能MySql》读书笔记--第三章 服务器性能剖析</a>
+          </li>
+        
+          <li>
+            <a href="/2022/03/17/%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%BA%8C%E7%AB%A0-%E5%9F%BA%E5%87%86%E6%B5%8B%E8%AF%95/">《高性能MySql》读书笔记--第二章 基准测试</a>
+          </li>
+        
+          <li>
+            <a href="/2022/03/17/%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%B8%80%E7%AB%A0-%E6%9E%B6%E6%9E%84%E4%B8%8E%E5%8E%86%E5%8F%B2/">《高性能MySql》读书笔记--第一章 架构与历史</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+    
+</aside>
+    <div class="nexmoe-copyright">
+        &copy; 2022 Tiki Xiang
+        Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+        & <a href="https://github.com/theme-nexmoe/hexo-theme-nexmoe" target="_blank">Nexmoe</a>
+        <br><a target="_blank" href="https://www.upyun.com/?utm_source=lianmeng&utm_medium=referral"><img src="https://i.dawnlab.me/c0268c1e6cfd0863d6ba35be1575941a.png" width="150px"></a><script data-ad-client="ca-pub-2058306854838448" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    </div>
+</div><!-- .nexmoe-drawer -->
+    </div>
+    <div id="nexmoe-content">
+        <div class="nexmoe-primary">
+            <div class="nexmoe-post">
+
+  <article>
+      
+          <div class="nexmoe-post-cover" style="padding-bottom: 66.66666666666666%;"> 
+              <img data-src="/images/back.jpg" data-sizes="auto" alt="《高性能MySql》读书笔记--第一章 架构与历史" class="lazyload">
+              <h1>《高性能MySql》读书笔记--第一章 架构与历史</h1>
+          </div>
+      
+      
+      <div class="nexmoe-post-meta nexmoe-rainbow" style="margin:10px 0!important;">
+    <a><i class="nexmoefont icon-calendar-fill"></i>2022年03月17日</a>
+</div>
+
+      
+
+      <h1 id="架构与历史"><a href="#架构与历史" class="headerlink" title="架构与历史"></a>架构与历史</h1><h2 id="Mysql逻辑架构"><a href="#Mysql逻辑架构" class="headerlink" title="Mysql逻辑架构"></a>Mysql逻辑架构</h2><span id="more"></span>
+
+<h3 id="架构图"><a href="#架构图" class="headerlink" title="架构图"></a>架构图</h3><ul>
+<li>第一层：非Mysql独有，类似连接处理、授权认证、安全</li>
+<li>第二层：核心功能，包括解析、分析、优化、缓存以及内置函数，所有垮决策引擎功能都在这一层实现：存储过程、触发器、视图</li>
+<li>第三层：存储引擎，负责数据存储于提取</li>
+</ul>
+<h3 id="连接管理与安全性"><a href="#连接管理与安全性" class="headerlink" title="连接管理与安全性"></a>连接管理与安全性</h3><ul>
+<li>每个客户端连接在服务器都拥有一个线程，该线程只能轮流在某个CPU核心或者CPU运行，服务器会缓存线程，不需要为新建连接创建或销毁线程</li>
+<li>连接时需要认证（用户名密码，若SSL还要验证证书），连接成功后验证访问权限</li>
+</ul>
+<h3 id="优化与执行"><a href="#优化与执行" class="headerlink" title="优化与执行"></a>优化与执行</h3><ul>
+<li>解析查询，创建内部数据结构（解析树），进行优化。hint优化器影响决策过程，explain解释优化过程。</li>
+<li>优化器不关心使用什么引擎，但引擎对优化查询有影响</li>
+<li>SELECT语句在解析查询前服务器先检查缓存（Query Cache）</li>
+</ul>
+<h2 id="并发控制（服务器层与存储引擎层）"><a href="#并发控制（服务器层与存储引擎层）" class="headerlink" title="并发控制（服务器层与存储引擎层）"></a>并发控制（服务器层与存储引擎层）</h2><h3 id="读写锁"><a href="#读写锁" class="headerlink" title="读写锁"></a>读写锁</h3><ul>
+<li>共享锁（读锁）</li>
+<li>排他锁（写锁）</li>
+</ul>
+<h3 id="锁粒度（存储引擎管理锁）"><a href="#锁粒度（存储引擎管理锁）" class="headerlink" title="锁粒度（存储引擎管理锁）"></a>锁粒度（存储引擎管理锁）</h3><ul>
+<li>表锁（开销小，阻塞）</li>
+<li>行锁（开销大，并发处理）</li>
+</ul>
+<h2 id="事务"><a href="#事务" class="headerlink" title="事务"></a>事务</h2><h3 id="ACID"><a href="#ACID" class="headerlink" title="ACID"></a>ACID</h3><ul>
+<li>原子性（atomicity）</li>
+<li>一致性（consistency）</li>
+<li>隔离性（isolation）</li>
+<li>持久性（durability）</li>
+</ul>
+<h3 id="隔离级别"><a href="#隔离级别" class="headerlink" title="隔离级别"></a>隔离级别</h3><ul>
+<li>读未提交（READ_UNCOMMITTED）</li>
+<li>提交读（READ_COMMITTED）</li>
+<li>可重复度（REPEATABLE_READ）默认</li>
+<li>SERIALIZABLE</li>
+</ul>
+<h3 id="死锁"><a href="#死锁" class="headerlink" title="死锁"></a>死锁</h3><ul>
+<li>场景<ul>
+<li>同时锁定同一个资源</li>
+<li>不同顺序锁定资源</li>
+</ul>
+</li>
+<li>解决方案<ul>
+<li>死锁检测</li>
+<li>死锁超时</li>
+<li>Innodb处理死锁：将持有最少行级排它锁的事务回滚</li>
+</ul>
+</li>
+</ul>
+<h3 id="事务日志"><a href="#事务日志" class="headerlink" title="事务日志"></a>事务日志</h3><ul>
+<li>作用<ul>
+<li>存储引擎修改表数据时，只需要修改其内存拷贝，再把修改行为记录到持久在硬盘事务日志中，而不用每次都将修改的数据本身持久到磁盘。</li>
+<li>采用追加，磁盘顺序IO，不用频繁移动磁头，事务日志持久以后内存修改的数据可以慢慢刷回磁盘（预写式日志）</li>
+</ul>
+</li>
+</ul>
+<h3 id="Mysql中的事务"><a href="#Mysql中的事务" class="headerlink" title="Mysql中的事务"></a>Mysql中的事务</h3><ul>
+<li>支持的引擎<ul>
+<li>InnoDb和NDB Cluster</li>
+<li>第三方：XtraDb和PBXT</li>
+</ul>
+</li>
+<li>自动提交（AutoCommit）默认<ul>
+<li>1或ON表示启用，0或OFF表示禁用</li>
+<li>set autocommit &#x3D; 1;</li>
+<li>隔离级别设置：set transaction isolation level xxx</li>
+</ul>
+</li>
+<li>事务中混合使用存储引擎<ul>
+<li>同一事务中混合使用存储引擎不可靠，回滚时不会回滚非事务的，有时候只有回滚时会发出非事务表的变更不能回滚的警告</li>
+</ul>
+</li>
+<li>隐式和显式锁定<ul>
+<li>innodb两阶段锁定协议，根据隔离级别自动隐式加锁</li>
+<li>特定语句来显式锁定<ul>
+<li>SELECT … LOCK IN SHARE MODE</li>
+<li>SELECT … FOR UPDATE</li>
+</ul>
+</li>
+<li>LOCK&#x2F;UNLOCK TABLES：服务器层实现，存储引擎无关，不能替代事务。</li>
+</ul>
+</li>
+</ul>
+<h2 id="多版本并发控制MVCC"><a href="#多版本并发控制MVCC" class="headerlink" title="多版本并发控制MVCC"></a>多版本并发控制MVCC</h2><h3 id="实现思想"><a href="#实现思想" class="headerlink" title="实现思想"></a>实现思想</h3><ul>
+<li>通过保存数据在某个时间节点的快照来实现</li>
+<li>不同存储引擎MVCC实现方式不同</li>
+</ul>
+<h3 id="InnoDB的MVCC（每行记录俩隐藏列实现，一列存储黄建时间一列存储过期时间（版本号））"><a href="#InnoDB的MVCC（每行记录俩隐藏列实现，一列存储黄建时间一列存储过期时间（版本号））" class="headerlink" title="InnoDB的MVCC（每行记录俩隐藏列实现，一列存储黄建时间一列存储过期时间（版本号））"></a>InnoDB的MVCC（每行记录俩隐藏列实现，一列存储黄建时间一列存储过期时间（版本号））</h3><ul>
+<li>REPEATABLE下SELECT<ul>
+<li>只查找版本早于当前事务版本的数据行</li>
+<li>行的删除版本要么未定义，要么大于当前事务版本号</li>
+</ul>
+</li>
+<li>INSERT<ul>
+<li>插入保存当前系统版本号作为行版本号</li>
+</ul>
+</li>
+<li>DELETE<ul>
+<li>系统版本作为删除标示</li>
+</ul>
+</li>
+<li>UPDATE<ul>
+<li>每插入一条，保存当前系统版本号为行版本号并且同时保存当前系统版本号到原来的行作为行删除标示</li>
+</ul>
+</li>
+</ul>
+<h2 id="Mysql的存储引擎"><a href="#Mysql的存储引擎" class="headerlink" title="Mysql的存储引擎"></a>Mysql的存储引擎</h2><h3 id="文件系统"><a href="#文件系统" class="headerlink" title="文件系统"></a>文件系统</h3><ul>
+<li>每个数据库（schema）保存为数据目录的子目录，创建表时在该子目录创建.frm保存表结构信息</li>
+<li>SHOW TABLE STATUS like ‘xxxx’<ul>
+<li>Name、Engine、Row_format、Rows、Avr_row_length、Data_length、Max_data_length、Index_length、Data_free、Auto_increment、Create_time、Update_time、Check_time、Collation、Checksum、Create_options、Comment</li>
+</ul>
+</li>
+</ul>
+<h3 id="InnoDB存储引擎"><a href="#InnoDB存储引擎" class="headerlink" title="InnoDB存储引擎"></a>InnoDB存储引擎</h3><ul>
+<li>概览（官方手册：innodb事务模型和锁）<ul>
+<li>数据存储在表空间。表空间是由innnodb管理的黑盒子，有一系列数据文件组成。</li>
+<li>MVCC支持高并发，实现四个标准的隔离级别，默认可重复读，通过间隙锁策略防止幻读</li>
+<li>基于聚簇索引建立</li>
+<li>存储格式平台独立</li>
+<li>内部优化：读取数据可预测性预读，在内存创建hash所以加速读（自适应哈希索引），加速插入插入缓冲区</li>
+</ul>
+</li>
+</ul>
+<h3 id="MyISAM存储引擎"><a href="#MyISAM存储引擎" class="headerlink" title="MyISAM存储引擎"></a>MyISAM存储引擎</h3><ul>
+<li>特性<ul>
+<li>存储<ul>
+<li>数据文件.MYD</li>
+<li>索引文件.MYI</li>
+</ul>
+</li>
+<li>表锁、读取共享锁、写入排它锁</li>
+<li>修复：检查与修复</li>
+<li>索引特性：BLOB与TEXT，基于前500个字符创建表索引；支持全文索引</li>
+<li>延迟更新索引建：不会立刻修改的索引数据写入磁盘，写到内存键缓冲区，清理键缓冲区或关闭表的时候讲对应索引块写入磁盘</li>
+</ul>
+</li>
+<li>MyISAM压缩表<ul>
+<li>针对创建表后导入数据不会再变更的适合压缩表</li>
+<li>myisampack进行表压缩，不能进行修改（解压，修改，压缩），极大减少磁盘空间占用，支持只读索引</li>
+</ul>
+</li>
+<li>性能<ul>
+<li>扩展限制</li>
+<li>表锁</li>
+</ul>
+</li>
+</ul>
+<h3 id="MyISAM内建的其他存储引擎"><a href="#MyISAM内建的其他存储引擎" class="headerlink" title="MyISAM内建的其他存储引擎"></a>MyISAM内建的其他存储引擎</h3><ul>
+<li>Archive<ul>
+<li>只支持INSERT与SELECT</li>
+<li>缓存所有写并利用zlib对插入的行进行压缩，SELECT需要扫全表：日志扫描</li>
+<li>行级锁与专用缓冲区</li>
+</ul>
+</li>
+<li>Blackhole<ul>
+<li>无插入机制，丢弃插入数据</li>
+</ul>
+</li>
+<li>CSV引擎<ul>
+<li>处理CSV文件作为表</li>
+<li>不支持索引</li>
+</ul>
+</li>
+<li>Federated<ul>
+<li>访问其他Mysql服务器的代理，创建一个远程MySQL客户端连接，查询传输到远程执行。然后提取或发送需要的数据</li>
+</ul>
+</li>
+<li>Memory<ul>
+<li>保存内存中</li>
+<li>表结构保留，数据重启丢失</li>
+<li>支持Hash索引</li>
+</ul>
+</li>
+<li>Merge<ul>
+<li>多个MyISAM合并的虚拟表</li>
+</ul>
+</li>
+<li>NDB</li>
+</ul>
+<h3 id="第三方存储引擎"><a href="#第三方存储引擎" class="headerlink" title="第三方存储引擎"></a>第三方存储引擎</h3><ul>
+<li>OLTP<ul>
+<li>XtraDB、PBXT、tokuDB</li>
+</ul>
+</li>
+<li>面向列的存储引擎<ul>
+<li>Infobright、InfiniDB</li>
+</ul>
+</li>
+<li>社区存储引擎<ul>
+<li>Aria</li>
+<li>Groonga</li>
+<li>OGGraph</li>
+<li>Q4M</li>
+<li>SphinxSE</li>
+<li>Spider</li>
+<li>VPForMysql</li>
+</ul>
+</li>
+</ul>
+<h3 id="选择合适的引擎（优先Innodb（组合））"><a href="#选择合适的引擎（优先Innodb（组合））" class="headerlink" title="选择合适的引擎（优先Innodb（组合））"></a>选择合适的引擎（优先Innodb（组合））</h3><ul>
+<li>考虑因素<ul>
+<li>事务</li>
+<li>备份</li>
+<li>崩溃恢复</li>
+</ul>
+</li>
+<li>日志型应用<ul>
+<li>插入快</li>
+<li>分析报表：一、备库。二、按日期拆表</li>
+</ul>
+</li>
+<li>只读或大部分情况下只读的表</li>
+<li>订单处理：事务（innodb）</li>
+<li>电子公告牌和论坛：高读写</li>
+<li>CD-ROM应用：表隔离且拷贝</li>
+<li>大数据量：&gt;10TB Infobright</li>
+</ul>
+<h3 id="转换表的存储引擎"><a href="#转换表的存储引擎" class="headerlink" title="转换表的存储引擎"></a>转换表的存储引擎</h3><ul>
+<li>ALTER TABLE xx ENGINE &#x3D; InnoDB<ul>
+<li>按行数据从原表复制到新表，消耗系统IO，原表加读锁</li>
+</ul>
+</li>
+<li>导出与导入<ul>
+<li>mysqldump</li>
+</ul>
+</li>
+<li>创建与查询<ul>
+<li>INERT INTO XX SELECT * from xx；</li>
+</ul>
+</li>
+</ul>
+<h2 id="MySQL时间线"><a href="#MySQL时间线" class="headerlink" title="MySQL时间线"></a>MySQL时间线</h2><h3 id="3-23（2001）：SQL查询，InnoDB可以使用，全文索引和复制"><a href="#3-23（2001）：SQL查询，InnoDB可以使用，全文索引和复制" class="headerlink" title="3.23（2001）：SQL查询，InnoDB可以使用，全文索引和复制"></a>3.23（2001）：SQL查询，InnoDB可以使用，全文索引和复制</h3><h3 id="4-0（2003）：UNION和多表DELETE，重写了复制（备库使用俩线程复制），-innodb标配（行锁，外键），查询缓存，SSL连接"><a href="#4-0（2003）：UNION和多表DELETE，重写了复制（备库使用俩线程复制），-innodb标配（行锁，外键），查询缓存，SSL连接" class="headerlink" title="4.0（2003）：UNION和多表DELETE，重写了复制（备库使用俩线程复制）， innodb标配（行锁，外键），查询缓存，SSL连接"></a>4.0（2003）：UNION和多表DELETE，重写了复制（备库使用俩线程复制）， innodb标配（行锁，外键），查询缓存，SSL连接</h3><h3 id="4-1（2005）：子查询-INSERT-ON-DUPLICATE-KEY-UPDATE，支持UTF-8，支持新二进制协议，prepared语句"><a href="#4-1（2005）：子查询-INSERT-ON-DUPLICATE-KEY-UPDATE，支持UTF-8，支持新二进制协议，prepared语句" class="headerlink" title="4.1（2005）：子查询 INSERT ON DUPLICATE KEY UPDATE，支持UTF-8，支持新二进制协议，prepared语句"></a>4.1（2005）：子查询 INSERT ON DUPLICATE KEY UPDATE，支持UTF-8，支持新二进制协议，prepared语句</h3><h3 id="5-0（2006）：视图、触发器、存储过程、存储函数"><a href="#5-0（2006）：视图、触发器、存储过程、存储函数" class="headerlink" title="5.0（2006）：视图、触发器、存储过程、存储函数"></a>5.0（2006）：视图、触发器、存储过程、存储函数</h3><h3 id="5-1（2008）：分区，基于行的复制，plugin-API"><a href="#5-1（2008）：分区，基于行的复制，plugin-API" class="headerlink" title="5.1（2008）：分区，基于行的复制，plugin API"></a>5.1（2008）：分区，基于行的复制，plugin API</h3><h3 id="5-5（2010）：innodb默认，性能，扩展性，复制，分区，半同步复制"><a href="#5-5（2010）：innodb默认，性能，扩展性，复制，分区，半同步复制" class="headerlink" title="5.5（2010）：innodb默认，性能，扩展性，复制，分区，半同步复制"></a>5.5（2010）：innodb默认，性能，扩展性，复制，分区，半同步复制</h3><h2 id="MySQL开发模式"><a href="#MySQL开发模式" class="headerlink" title="MySQL开发模式"></a>MySQL开发模式</h2><h3 id="开源，插件模式"><a href="#开源，插件模式" class="headerlink" title="开源，插件模式"></a>开源，插件模式</h3>
+  </article>
+
+  
+      
+    <div class="nexmoe-post-copyright">
+        <strong>本文作者：</strong>Tiki Xiang<br>
+        <strong>本文链接：</strong><a href="http://blog.tiki-xiang.cn/2022/03/17/%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%B8%80%E7%AB%A0-%E6%9E%B6%E6%9E%84%E4%B8%8E%E5%8E%86%E5%8F%B2/" title="http:&#x2F;&#x2F;blog.tiki-xiang.cn&#x2F;2022&#x2F;03&#x2F;17&#x2F;%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%B8%80%E7%AB%A0-%E6%9E%B6%E6%9E%84%E4%B8%8E%E5%8E%86%E5%8F%B2&#x2F;" target="_blank" rel="noopener">http:&#x2F;&#x2F;blog.tiki-xiang.cn&#x2F;2022&#x2F;03&#x2F;17&#x2F;%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%B8%80%E7%AB%A0-%E6%9E%B6%E6%9E%84%E4%B8%8E%E5%8E%86%E5%8F%B2&#x2F;</a><br>
+        
+            <strong>版权声明：</strong>本文采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/cn/deed.zh" target="_blank">CC BY-NC-SA 3.0 CN</a> 协议进行许可
+        
+    </div>
+
+
+  
+  
+  <div class="nexmoe-post-meta nexmoe-rainbow">
+    
+        <a class="nexmoefont icon-appstore-fill -link" href="/categories/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">读书笔记</a>
+    
+    
+        <a class="nexmoefont icon-tag-fill -none-link" href="/tags/MySql/" rel="tag">MySql</a> <a class="nexmoefont icon-tag-fill -none-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a> <a class="nexmoefont icon-tag-fill -none-link" href="/tags/%E9%AB%98%E6%80%A7%E8%83%BDMySql/" rel="tag">高性能MySql</a>
+    
+</div>
+
+  
+      <div class="nexmoe-post-footer">
+          
+      </div>
+  
+</div>
+            <div class="nexmoe-post-right">
+              <div class="nexmoe-fixed">
+                  <div class="nexmoe-tool"> 
+                    
+                      
+                        
+                          
+                          
+                              <button class="mdui-fab catalog" style="overflow:unset;">
+                                  <i class="nexmoefont icon-i-catalog"></i>
+                                  <div class="nexmoe-toc">
+                                      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%9E%B6%E6%9E%84%E4%B8%8E%E5%8E%86%E5%8F%B2"><span class="toc-number">1.</span> <span class="toc-text">架构与历史</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Mysql%E9%80%BB%E8%BE%91%E6%9E%B6%E6%9E%84"><span class="toc-number">1.1.</span> <span class="toc-text">Mysql逻辑架构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9E%B6%E6%9E%84%E5%9B%BE"><span class="toc-number">1.1.1.</span> <span class="toc-text">架构图</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%9E%E6%8E%A5%E7%AE%A1%E7%90%86%E4%B8%8E%E5%AE%89%E5%85%A8%E6%80%A7"><span class="toc-number">1.1.2.</span> <span class="toc-text">连接管理与安全性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BC%98%E5%8C%96%E4%B8%8E%E6%89%A7%E8%A1%8C"><span class="toc-number">1.1.3.</span> <span class="toc-text">优化与执行</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6%EF%BC%88%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%B1%82%E4%B8%8E%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E%E5%B1%82%EF%BC%89"><span class="toc-number">1.2.</span> <span class="toc-text">并发控制（服务器层与存储引擎层）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%BB%E5%86%99%E9%94%81"><span class="toc-number">1.2.1.</span> <span class="toc-text">读写锁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%94%81%E7%B2%92%E5%BA%A6%EF%BC%88%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E%E7%AE%A1%E7%90%86%E9%94%81%EF%BC%89"><span class="toc-number">1.2.2.</span> <span class="toc-text">锁粒度（存储引擎管理锁）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8B%E5%8A%A1"><span class="toc-number">1.3.</span> <span class="toc-text">事务</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#ACID"><span class="toc-number">1.3.1.</span> <span class="toc-text">ACID</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB"><span class="toc-number">1.3.2.</span> <span class="toc-text">隔离级别</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%BB%E9%94%81"><span class="toc-number">1.3.3.</span> <span class="toc-text">死锁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8B%E5%8A%A1%E6%97%A5%E5%BF%97"><span class="toc-number">1.3.4.</span> <span class="toc-text">事务日志</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Mysql%E4%B8%AD%E7%9A%84%E4%BA%8B%E5%8A%A1"><span class="toc-number">1.3.5.</span> <span class="toc-text">Mysql中的事务</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%9A%E7%89%88%E6%9C%AC%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6MVCC"><span class="toc-number">1.4.</span> <span class="toc-text">多版本并发控制MVCC</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E6%80%9D%E6%83%B3"><span class="toc-number">1.4.1.</span> <span class="toc-text">实现思想</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#InnoDB%E7%9A%84MVCC%EF%BC%88%E6%AF%8F%E8%A1%8C%E8%AE%B0%E5%BD%95%E4%BF%A9%E9%9A%90%E8%97%8F%E5%88%97%E5%AE%9E%E7%8E%B0%EF%BC%8C%E4%B8%80%E5%88%97%E5%AD%98%E5%82%A8%E9%BB%84%E5%BB%BA%E6%97%B6%E9%97%B4%E4%B8%80%E5%88%97%E5%AD%98%E5%82%A8%E8%BF%87%E6%9C%9F%E6%97%B6%E9%97%B4%EF%BC%88%E7%89%88%E6%9C%AC%E5%8F%B7%EF%BC%89%EF%BC%89"><span class="toc-number">1.4.2.</span> <span class="toc-text">InnoDB的MVCC（每行记录俩隐藏列实现，一列存储黄建时间一列存储过期时间（版本号））</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Mysql%E7%9A%84%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E"><span class="toc-number">1.5.</span> <span class="toc-text">Mysql的存储引擎</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F"><span class="toc-number">1.5.1.</span> <span class="toc-text">文件系统</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#InnoDB%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E"><span class="toc-number">1.5.2.</span> <span class="toc-text">InnoDB存储引擎</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#MyISAM%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E"><span class="toc-number">1.5.3.</span> <span class="toc-text">MyISAM存储引擎</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#MyISAM%E5%86%85%E5%BB%BA%E7%9A%84%E5%85%B6%E4%BB%96%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E"><span class="toc-number">1.5.4.</span> <span class="toc-text">MyISAM内建的其他存储引擎</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E6%96%B9%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E"><span class="toc-number">1.5.5.</span> <span class="toc-text">第三方存储引擎</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%89%E6%8B%A9%E5%90%88%E9%80%82%E7%9A%84%E5%BC%95%E6%93%8E%EF%BC%88%E4%BC%98%E5%85%88Innodb%EF%BC%88%E7%BB%84%E5%90%88%EF%BC%89%EF%BC%89"><span class="toc-number">1.5.6.</span> <span class="toc-text">选择合适的引擎（优先Innodb（组合））</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BD%AC%E6%8D%A2%E8%A1%A8%E7%9A%84%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E"><span class="toc-number">1.5.7.</span> <span class="toc-text">转换表的存储引擎</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MySQL%E6%97%B6%E9%97%B4%E7%BA%BF"><span class="toc-number">1.6.</span> <span class="toc-text">MySQL时间线</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-23%EF%BC%882001%EF%BC%89%EF%BC%9ASQL%E6%9F%A5%E8%AF%A2%EF%BC%8CInnoDB%E5%8F%AF%E4%BB%A5%E4%BD%BF%E7%94%A8%EF%BC%8C%E5%85%A8%E6%96%87%E7%B4%A2%E5%BC%95%E5%92%8C%E5%A4%8D%E5%88%B6"><span class="toc-number">1.6.1.</span> <span class="toc-text">3.23（2001）：SQL查询，InnoDB可以使用，全文索引和复制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-0%EF%BC%882003%EF%BC%89%EF%BC%9AUNION%E5%92%8C%E5%A4%9A%E8%A1%A8DELETE%EF%BC%8C%E9%87%8D%E5%86%99%E4%BA%86%E5%A4%8D%E5%88%B6%EF%BC%88%E5%A4%87%E5%BA%93%E4%BD%BF%E7%94%A8%E4%BF%A9%E7%BA%BF%E7%A8%8B%E5%A4%8D%E5%88%B6%EF%BC%89%EF%BC%8C-innodb%E6%A0%87%E9%85%8D%EF%BC%88%E8%A1%8C%E9%94%81%EF%BC%8C%E5%A4%96%E9%94%AE%EF%BC%89%EF%BC%8C%E6%9F%A5%E8%AF%A2%E7%BC%93%E5%AD%98%EF%BC%8CSSL%E8%BF%9E%E6%8E%A5"><span class="toc-number">1.6.2.</span> <span class="toc-text">4.0（2003）：UNION和多表DELETE，重写了复制（备库使用俩线程复制）， innodb标配（行锁，外键），查询缓存，SSL连接</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1%EF%BC%882005%EF%BC%89%EF%BC%9A%E5%AD%90%E6%9F%A5%E8%AF%A2-INSERT-ON-DUPLICATE-KEY-UPDATE%EF%BC%8C%E6%94%AF%E6%8C%81UTF-8%EF%BC%8C%E6%94%AF%E6%8C%81%E6%96%B0%E4%BA%8C%E8%BF%9B%E5%88%B6%E5%8D%8F%E8%AE%AE%EF%BC%8Cprepared%E8%AF%AD%E5%8F%A5"><span class="toc-number">1.6.3.</span> <span class="toc-text">4.1（2005）：子查询 INSERT ON DUPLICATE KEY UPDATE，支持UTF-8，支持新二进制协议，prepared语句</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-0%EF%BC%882006%EF%BC%89%EF%BC%9A%E8%A7%86%E5%9B%BE%E3%80%81%E8%A7%A6%E5%8F%91%E5%99%A8%E3%80%81%E5%AD%98%E5%82%A8%E8%BF%87%E7%A8%8B%E3%80%81%E5%AD%98%E5%82%A8%E5%87%BD%E6%95%B0"><span class="toc-number">1.6.4.</span> <span class="toc-text">5.0（2006）：视图、触发器、存储过程、存储函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1%EF%BC%882008%EF%BC%89%EF%BC%9A%E5%88%86%E5%8C%BA%EF%BC%8C%E5%9F%BA%E4%BA%8E%E8%A1%8C%E7%9A%84%E5%A4%8D%E5%88%B6%EF%BC%8Cplugin-API"><span class="toc-number">1.6.5.</span> <span class="toc-text">5.1（2008）：分区，基于行的复制，plugin API</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-5%EF%BC%882010%EF%BC%89%EF%BC%9Ainnodb%E9%BB%98%E8%AE%A4%EF%BC%8C%E6%80%A7%E8%83%BD%EF%BC%8C%E6%89%A9%E5%B1%95%E6%80%A7%EF%BC%8C%E5%A4%8D%E5%88%B6%EF%BC%8C%E5%88%86%E5%8C%BA%EF%BC%8C%E5%8D%8A%E5%90%8C%E6%AD%A5%E5%A4%8D%E5%88%B6"><span class="toc-number">1.6.6.</span> <span class="toc-text">5.5（2010）：innodb默认，性能，扩展性，复制，分区，半同步复制</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MySQL%E5%BC%80%E5%8F%91%E6%A8%A1%E5%BC%8F"><span class="toc-number">1.7.</span> <span class="toc-text">MySQL开发模式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BC%80%E6%BA%90%EF%BC%8C%E6%8F%92%E4%BB%B6%E6%A8%A1%E5%BC%8F"><span class="toc-number">1.7.1.</span> <span class="toc-text">开源，插件模式</span></a></li></ol></li></ol></li></ol>
+                                  </div>
+                              </button>
+                          
+                          
+                      
+                    
+                      <a href="#nexmoe-content" class="toc-link" aria-label="回到顶部" title="top"><button class="mdui-fab mdui-ripple"><i class="nexmoefont icon-caret-top"></i></button></a>
+                  </div>
+              </div>
+            </div>
+        </div>
+    </div>
+     
+    <div id="nexmoe-search-space">
+        <div class="search-container">
+            <div class="search-header">
+                <div class="search-input-container">
+                    <input class="search-input" type="text" placeholder="搜索" oninput="sinput();">
+                </div>
+                <a class="search-close" onclick="sclose();">×</a>
+            </div>
+            <div class="search-body"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/combine/npm/lazysizes@5.1.0/lazysizes.min.js,npm/mdui@0.4.3/dist/js/mdui.min.js?v=1"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+
+ 
+
+<script async src="/js/app.js?v=1647517914917"></script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/js/jquery.justifiedGallery.min.js"></script>
+<script>
+	$(".justified-gallery").justifiedGallery({
+		rowHeight: 160,
+		margins: 10,
+	});
+</script>
+
+
+    
+
+
+
+
+
+</body>
+
+</html>

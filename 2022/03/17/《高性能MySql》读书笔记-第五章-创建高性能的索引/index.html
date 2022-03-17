@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+
+<head>
+    
+    <title>《高性能MySql》读书笔记--第五章 创建高性能的索引 - Tiki Xiang的博客</title>
+    <meta charset="UTF-8">
+    <meta name="keywords" content="博客;tiki;xiang">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    
+    
+
+    <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon" />
+    <meta name="description" content="创建高性能的索引索引基础">
+<meta property="og:type" content="article">
+<meta property="og:title" content="《高性能MySql》读书笔记--第五章 创建高性能的索引">
+<meta property="og:url" content="http://blog.tiki-xiang.cn/2022/03/17/%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%BA%94%E7%AB%A0-%E5%88%9B%E5%BB%BA%E9%AB%98%E6%80%A7%E8%83%BD%E7%9A%84%E7%B4%A2%E5%BC%95/index.html">
+<meta property="og:site_name" content="Tiki Xiang的博客">
+<meta property="og:description" content="创建高性能的索引索引基础">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-03-17T11:42:06.000Z">
+<meta property="article:modified_time" content="2022-03-17T11:51:40.128Z">
+<meta property="article:author" content="Tiki Xiang">
+<meta property="article:tag" content="高性能MySql">
+<meta property="article:tag" content="MySql">
+<meta property="article:tag" content="数据库">
+<meta name="twitter:card" content="summary">
+    <link rel="stylesheet" href="/lib/jquery.fancybox.min.css?v=1647517914885">
+    
+        <link rel="stylesheet" href="//at.alicdn.com/t/font_3253964_4orv58tg7c4.css">
+    
+    <link rel="stylesheet" href="/lib/mdui_043tiny/css/mdui.css?v=1647517914885">
+    <link rel="stylesheet" href="/lib/iconfont/iconfont.css?v=1647517914885">
+    <link rel="stylesheet" href="/css/style.css?v=1647517914885">
+     
+    
+        <link rel="stylesheet" href="/custom.css">
+    
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+<body class="mdui-drawer-body-left">
+    
+    <div id="nexmoe-background">
+        <div class="nexmoe-bg" style="background-image: url(/images/back.jpg)"></div>
+        <div class="mdui-appbar mdui-shadow-0">
+            <div class="mdui-toolbar">
+                <a mdui-drawer="{target: '#drawer', swipe: true}" title="menu" class="mdui-btn mdui-btn-icon mdui-ripple"><i class="mdui-icon nexmoefont icon-menu"></i></a>
+                <div class="mdui-toolbar-spacer"></div>
+                <!--<a href="javascript:;" class="mdui-btn mdui-btn-icon"><i class="mdui-icon material-icons">search</i></a>-->
+                <a href="/" title="Tiki Xiang" class="mdui-btn mdui-btn-icon"><img src="/images/pic2.jpg" alt="Tiki Xiang"></a>
+            </div>
+        </div>
+    </div>
+    <div id="nexmoe-header">
+        <div class="nexmoe-drawer mdui-drawer" id="drawer">
+    <div class="nexmoe-avatar mdui-ripple">
+        <a href="/" title="Tiki Xiang">
+            <img src="/images/pic2.jpg" alt="Tiki Xiang" alt="Tiki Xiang">
+        </a>
+    </div>
+    <div class="nexmoe-count">
+        <div><span>文章</span>5</div>
+        <div><span>标签</span>3</div>
+        <div><span>分类</span>1</div>
+    </div>
+    <div class="nexmoe-list mdui-list" mdui-collapse="{accordion: true}">
+        
+        <a class="nexmoe-list-item mdui-list-item mdui-ripple false" href="/" title="回到首页">
+            <i class="mdui-list-item-icon nexmoefont icon-fire-bollon"></i>
+            <div class="mdui-list-item-content">
+                回到首页
+            </div>
+        </a>
+        
+        <a class="nexmoe-list-item mdui-list-item mdui-ripple false" href="/archive.html" title="文章归档">
+            <i class="mdui-list-item-icon nexmoefont icon-sun"></i>
+            <div class="mdui-list-item-content">
+                文章归档
+            </div>
+        </a>
+        
+        <a class="nexmoe-list-item mdui-list-item mdui-ripple false" href="/about.html" title="关于博客">
+            <i class="mdui-list-item-icon nexmoefont icon-unbrella"></i>
+            <div class="mdui-list-item-content">
+                关于博客
+            </div>
+        </a>
+        
+        <a class="nexmoe-list-item mdui-list-item mdui-ripple false" href="/friends.html" title="我的朋友">
+            <i class="mdui-list-item-icon nexmoefont icon-watermellon"></i>
+            <div class="mdui-list-item-content">
+                我的朋友
+            </div>
+        </a>
+        
+    </div>
+    <aside id="nexmoe-sidebar">
+    
+    <div class="nexmoe-widget-wrap">
+    <div class="nexmoe-widget nexmoe-search">
+         
+            <form id="search_form" action_e="https://cn.bing.com/search?q=localhost:4000# 搜索引擎地址，在type为swiftype时无效 e.g:https://www.google.com/search?q={你的博客链接}" onsubmit="return search();">
+                <label><input id="search_value" name="q" type="search" placeholder="搜索"></label>
+            </form>
+         
+    </div>
+</div>
+    
+    <div class="nexmoe-widget-wrap">
+    <div class="nexmoe-widget nexmoe-social">
+        <a class="mdui-ripple" href="https://jq.qq.com/?_wv=1027&k=5CfKHun" target="_blank" mdui-tooltip="{content: 'QQ群'}" style="color: rgb(249, 174, 8);background-color: rgba(249, 174, 8, .1);">
+            <i class="nexmoefont icon-QQ"></i>
+        </a><a class="mdui-ripple" href="https://space.bilibili.com/20238211" target="_blank" mdui-tooltip="{content: '哔哩哔哩'}" style="color: rgb(231, 106, 141);background-color: rgba(231, 106, 141, .15);">
+            <i class="nexmoefont icon-bilibili"></i>
+        </a><a class="mdui-ripple" href="https://github.com/nexmoe/" target="_blank" mdui-tooltip="{content: 'GitHub'}" style="color: rgb(25, 23, 23);background-color: rgba(25, 23, 23, .15);">
+            <i class="nexmoefont icon-github"></i>
+        </a>
+    </div>
+</div>
+    
+    
+  <div class="nexmoe-widget-wrap">
+    <h3 class="nexmoe-widget-title">文章分类</h3>
+    <div class="nexmoe-widget">
+
+      <ul class="category-list">
+
+        
+
+
+        
+
+        
+
+        <li class="category-list-item">
+          <a class="category-list-link" href="/categories/读书笔记/">读书笔记</a>
+          <span class="category-list-count">5</span>
+        </li>
+
+        
+      </ul>
+
+    </div>
+  </div>
+
+
+    
+    
+  <div class="nexmoe-widget-wrap">
+    <div id="randomtagcloud" class="nexmoe-widget tagcloud nexmoe-rainbow">
+      <a href="/tags/MySql/" style="font-size: 10px;">MySql</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 10px;">数据库</a> <a href="/tags/%E9%AB%98%E6%80%A7%E8%83%BDMySql/" style="font-size: 10px;">高性能MySql</a>
+    </div>
+    
+  </div>
+
+    
+    
+  <div class="nexmoe-widget-wrap">
+    <h3 class="nexmoe-widget-title">文章归档</h3>
+    <div class="nexmoe-widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/">2022</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+
+    
+    
+  <div class="nexmoe-widget-wrap">
+    <h3 class="nexmoe-widget-title">最新文章</h3>
+    <div class="nexmoe-widget">
+      <ul>
+        
+          <li>
+            <a href="/2022/03/17/%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%BA%94%E7%AB%A0-%E5%88%9B%E5%BB%BA%E9%AB%98%E6%80%A7%E8%83%BD%E7%9A%84%E7%B4%A2%E5%BC%95/">《高性能MySql》读书笔记--第五章 创建高性能的索引</a>
+          </li>
+        
+          <li>
+            <a href="/2022/03/17/%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E5%9B%9B%E7%AB%A0-Schema%E4%B8%8E%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E4%BC%98%E5%8C%96/">《高性能MySql》读书笔记--第四章 Schema与数据类型优化</a>
+          </li>
+        
+          <li>
+            <a href="/2022/03/17/%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%B8%89%E7%AB%A0-%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%80%A7%E8%83%BD%E5%89%96%E6%9E%90/">《高性能MySql》读书笔记--第三章 服务器性能剖析</a>
+          </li>
+        
+          <li>
+            <a href="/2022/03/17/%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%BA%8C%E7%AB%A0-%E5%9F%BA%E5%87%86%E6%B5%8B%E8%AF%95/">《高性能MySql》读书笔记--第二章 基准测试</a>
+          </li>
+        
+          <li>
+            <a href="/2022/03/17/%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%B8%80%E7%AB%A0-%E6%9E%B6%E6%9E%84%E4%B8%8E%E5%8E%86%E5%8F%B2/">《高性能MySql》读书笔记--第一章 架构与历史</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+    
+</aside>
+    <div class="nexmoe-copyright">
+        &copy; 2022 Tiki Xiang
+        Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+        & <a href="https://github.com/theme-nexmoe/hexo-theme-nexmoe" target="_blank">Nexmoe</a>
+        <br><a target="_blank" href="https://www.upyun.com/?utm_source=lianmeng&utm_medium=referral"><img src="https://i.dawnlab.me/c0268c1e6cfd0863d6ba35be1575941a.png" width="150px"></a><script data-ad-client="ca-pub-2058306854838448" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    </div>
+</div><!-- .nexmoe-drawer -->
+    </div>
+    <div id="nexmoe-content">
+        <div class="nexmoe-primary">
+            <div class="nexmoe-post">
+
+  <article>
+      
+          <div class="nexmoe-post-cover" style="padding-bottom: NaN%;"> 
+              <img data-src="/images/pic2.jpg" data-sizes="auto" alt="《高性能MySql》读书笔记--第五章 创建高性能的索引" class="lazyload">
+              <h1>《高性能MySql》读书笔记--第五章 创建高性能的索引</h1>
+          </div>
+      
+      
+      <div class="nexmoe-post-meta nexmoe-rainbow" style="margin:10px 0!important;">
+    <a><i class="nexmoefont icon-calendar-fill"></i>2022年03月17日</a>
+</div>
+
+      
+
+      <h1 id="创建高性能的索引"><a href="#创建高性能的索引" class="headerlink" title="创建高性能的索引"></a>创建高性能的索引</h1><h2 id="索引基础"><a href="#索引基础" class="headerlink" title="索引基础"></a>索引基础</h2><span id="more"></span>
+
+<h3 id="索引的类型"><a href="#索引的类型" class="headerlink" title="索引的类型"></a>索引的类型</h3><ul>
+<li>B-Tree索引<ul>
+<li>底层存储引擎可能使用不不同存储结构(NDB T-Tree；innodb：B+Tree)</li>
+<li>B-Tree对索引列是顺序组织存储的</li>
+<li>查询有效场景<ul>
+<li>全值匹配</li>
+<li>匹配最左前缀</li>
+<li>匹配列前缀</li>
+<li>匹配范围值</li>
+<li>精确匹配某一列并范围匹配另外一列</li>
+<li>只访问索引的查询</li>
+</ul>
+</li>
+<li>限制<ul>
+<li>不是按照最左列开始查找</li>
+<li>不能跳过索引中的列</li>
+<li>某个列范围查询，右边所有列无法索引优化查找</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>哈希索引<ul>
+<li>只有memory显示支持hash索引</li>
+<li>需值完全对应</li>
+<li>限制<ul>
+<li>只包含哈希值和行指针</li>
+<li>并不是按照索引值顺序存储的，无法排序</li>
+<li>不支持部分索引列匹配查找</li>
+<li>只支持等值比较查询</li>
+<li>哈希索引数据非常快，除非哈希冲突遍历链表行指针</li>
+<li>冲突越多代价越大</li>
+</ul>
+</li>
+<li>memory支持哈希，NDB也支持，InnoDb有特殊功能为自适应哈希索引（索引值应用频繁时在内存基于B-Tree索引之上再创建一个哈希索引，快速哈希查找）（innodb可以对大字符列hash建列并做以索引）<ul>
+<li>尽量避免MD5与SHA1做加密函数，字符串较长，最好在MD5的基础上截取自定义哈希函数</li>
+<li>查询条件避免冲突查询多条需写入哈希值+列值</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>空间数据索引（R-Tree）<ul>
+<li>MyISAM支持空间索引用作地理数据存储</li>
+<li>无需前缀查询，必须使用Mysql的GIS相关函数维护</li>
+<li>Mysql对GIS支持并不完善，不建议使用</li>
+<li>PostgreSQL对GIS做的不错</li>
+</ul>
+</li>
+<li>全文索引<ul>
+<li>查找文本中的关键词而不是直接比较索引中的值</li>
+<li>在同列建全文索引与B-Tree索引不冲突</li>
+</ul>
+</li>
+<li>其他索引类别<ul>
+<li>TokuDB（fractal tee index分形树索引），ScalaDB（Patricia tries）</li>
+</ul>
+</li>
+</ul>
+<h2 id="索引的优点"><a href="#索引的优点" class="headerlink" title="索引的优点"></a>索引的优点</h2><h3 id="索引大大减少服务器需要扫描的数据量"><a href="#索引大大减少服务器需要扫描的数据量" class="headerlink" title="索引大大减少服务器需要扫描的数据量"></a>索引大大减少服务器需要扫描的数据量</h3><h3 id="索引可以帮助服务器避免排序和临时表"><a href="#索引可以帮助服务器避免排序和临时表" class="headerlink" title="索引可以帮助服务器避免排序和临时表"></a>索引可以帮助服务器避免排序和临时表</h3><h3 id="索引可以将随机IO变为顺序IO"><a href="#索引可以将随机IO变为顺序IO" class="headerlink" title="索引可以将随机IO变为顺序IO"></a>索引可以将随机IO变为顺序IO</h3><h2 id="高性能的索引策略"><a href="#高性能的索引策略" class="headerlink" title="高性能的索引策略"></a>高性能的索引策略</h2><h3 id="独立的列（索引列不能是表达式的一部分，也不能是函数的参数）"><a href="#独立的列（索引列不能是表达式的一部分，也不能是函数的参数）" class="headerlink" title="独立的列（索引列不能是表达式的一部分，也不能是函数的参数）"></a>独立的列（索引列不能是表达式的一部分，也不能是函数的参数）</h3><h3 id="前缀索引和索引选择性（不重复的索引值（基数）-x2F-数据表记录总数）"><a href="#前缀索引和索引选择性（不重复的索引值（基数）-x2F-数据表记录总数）" class="headerlink" title="前缀索引和索引选择性（不重复的索引值（基数）&#x2F;数据表记录总数）"></a>前缀索引和索引选择性（不重复的索引值（基数）&#x2F;数据表记录总数）</h3><ul>
+<li>模拟哈希索引处理很长字符列</li>
+<li>索引长字符列的开始部分字符</li>
+<li>对于BLOB、TEXT或很长的VARCHAR类型列，必须使用前缀索引</li>
+<li>如何合理计算选择性，针对完整列的选择性选择接近完整列选择性的列的前缀位数</li>
+<li>ALTER TABLE XX ADD KEY (XX(位数))</li>
+</ul>
+<h3 id="多列索引"><a href="#多列索引" class="headerlink" title="多列索引"></a>多列索引</h3><ul>
+<li>过多单列索引，一星索引，索引合并（union）<ul>
+<li>多个索引相交，需优化多列索引</li>
+<li>服务器对多个索引联合（union）需耗费大量CPU和内存资源在缓存排序合并上</li>
+<li>优化器不会将这些计算到查询成本上，成本被低估</li>
+</ul>
+</li>
+<li>有索引合并，尽量优化表结构，或设置optimizer_switch关闭索引合并；也可IGNORE INDEX让优化器忽略索引</li>
+</ul>
+<h3 id="选择合适的索引列顺序"><a href="#选择合适的索引列顺序" class="headerlink" title="选择合适的索引列顺序"></a>选择合适的索引列顺序</h3><ul>
+<li>背景<ul>
+<li>考虑索引查询并更好满足排序与分组的需要；仅讨论B-Tree顺序存储的索引</li>
+</ul>
+</li>
+<li>经验法则<ul>
+<li>将选择性最高的列放到索引最前列<ul>
+<li>select sum(a&#x3D;1),sum(b&#x3D;1) from t;谁的计数最小谁的选择性更高</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="聚簇索引"><a href="#聚簇索引" class="headerlink" title="聚簇索引"></a>聚簇索引</h3><ul>
+<li>含义<ul>
+<li>不是索引类型，而是一种数据存储方式；聚簇表示数据行和相邻的键值紧凑地存储在一起</li>
+<li>无法同时把数据存在两个地方，一个表只能一个聚簇索引（覆盖索引模拟多个聚簇索引的情况）</li>
+<li>主键列；若未定义主键，innodb会选择一个唯一的费控索引代替，若没有这样的索引，会隐式定义一个主键</li>
+</ul>
+</li>
+<li>优点<ul>
+<li>相关数据保存在一起</li>
+<li>数据访问更快</li>
+<li>使用覆盖索引扫描的查询可以直接使用叶节点中的主键值</li>
+</ul>
+</li>
+<li>缺点<ul>
+<li>最大限度提高了IO密集型应用的性能</li>
+<li>插入速度严重依赖于插入顺序</li>
+<li>更新聚簇索引的表在插入新航或者主键被更新导致需要移动行时可能面临页分裂问题</li>
+<li>可能导致全表扫描变慢</li>
+<li>二级索引（非聚簇索引）可能比想象的要更大</li>
+<li>二级索引访问需要两次索引查找（保存的主键值）（自适应哈希索引能减少这样重复工作）</li>
+</ul>
+</li>
+<li>InnoDB与MyISAM数据对比<ul>
+<li>MyISAM按照数据插入顺序存储在磁盘上</li>
+<li>MyISAM的主键索引仅仅是一个名为PRIMARY的唯一非空索引</li>
+<li>InnoDB聚簇索引就是表<ul>
+<li>每个叶子节点都包含了主键值、事务id、用于事务和MVCC的回滚指针以及所有的剩余列</li>
+</ul>
+</li>
+<li>InnoDB二级索引叶子节点存储的是主键值（非行指针），减少了出现行移动数据页分裂的索引维护工作<ul>
+<li>每个叶子节点都包含了索引列与主键值</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>在InnoDB表中按主键顺序插入行<ul>
+<li>主键选取<ul>
+<li>在没有数据需要聚集可以定义一个代理键，和应用无关，AUTO_INCREMENT自增列，保证数据按顺序写入</li>
+<li>避免随机（避免UUID）：花费时间长，占用空间大</li>
+</ul>
+</li>
+<li>数据插入原理<ul>
+<li>顺序主键<ul>
+<li>InnoDB把每一条记录都存储在上一条记录后面，当达到页最大填充银子（默认为页大小15&#x2F;16），下一条插入新的页中。按这种顺序加载，主键页就会近似于被顺序记录填满</li>
+<li>注意：顺序更坏的结果<ul>
+<li>争用主键值，间隙锁竞争，AUTO INCREMENT锁机制</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>无序主键<ul>
+<li>不能直接插在上一条之后，只能寻找合适位置（通常是已有数据中间位置）并分配空间，会增加额外工作，数据分布不够优化</li>
+<li>缺点<ul>
+<li>写入的目标页可能已经刷新到磁盘并从缓存中删除，或者还没有被加载到缓存中，innodb在插入钱不得不先找到并从磁盘读取目标页到内存，将导致大量随机IO</li>
+<li>写入是乱序的，innodb不得不频繁页分裂操作，以便为新的行分配空间。一次插入需要至少修改三个页</li>
+<li>页分裂后页变得稀疏并不规则填充，数据碎片</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="覆盖索引（包含或者覆盖所有需要查询的字段的值，无需回表）"><a href="#覆盖索引（包含或者覆盖所有需要查询的字段的值，无需回表）" class="headerlink" title="覆盖索引（包含或者覆盖所有需要查询的字段的值，无需回表）"></a>覆盖索引（包含或者覆盖所有需要查询的字段的值，无需回表）</h3><ul>
+<li>好处<ul>
+<li>索引条目通常远小于数据行大小，mysql可极大减少数据访问量，对缓存负载非常重要，减少数据拷贝</li>
+<li>索引是按照列值顺序存储，对于IO密集型范围查询会比随机从磁盘读取每一行数据IO要少的多</li>
+<li>一些存储引擎在内存中只缓存索引，数据则依赖操作系统缓存，访问数据需要一次系统调用</li>
+<li>innodb聚簇索引，二级索引覆盖主键值查询，避免二次查询</li>
+</ul>
+</li>
+<li>因为要存储索引列的值，所以只能用B-Tree做覆盖索引；EXPLAIN时Extra会展示Using index<ul>
+<li>条件索引全覆盖，查询内容未全覆盖，5.5前的老版本皆在条件为假的情况依然回表获取数据行</li>
+</ul>
+</li>
+</ul>
+<h3 id="使用索引扫描来做排序"><a href="#使用索引扫描来做排序" class="headerlink" title="使用索引扫描来做排序"></a>使用索引扫描来做排序</h3><ul>
+<li>mysql得到有序结果方法<ul>
+<li>排序操作</li>
+<li>按索引顺序扫描（Explian的type列为index，非Extra的Using index）</li>
+</ul>
+</li>
+<li>索引覆盖查询，如果不能覆盖造成回表查询</li>
+<li>使用同一个索引完成排序与查找<ul>
+<li>索引顺序和orderby顺序完全一致，所有列排序方向一样，才能使用索引对结果排序。</li>
+<li>多表联查，仅当orderby子句字段完全为第一个表，才能索引排序</li>
+<li>最左前缀要求；特殊情况：前导列为常量</li>
+</ul>
+</li>
+<li>不能使用索引排序的场景<ul>
+<li>索引列排序方向不同</li>
+<li>order运用不存在的列</li>
+<li>范围查询</li>
+<li>in</li>
+</ul>
+</li>
+</ul>
+<h3 id="压缩（前缀压缩）索引（MyISAM）"><a href="#压缩（前缀压缩）索引（MyISAM）" class="headerlink" title="压缩（前缀压缩）索引（MyISAM）"></a>压缩（前缀压缩）索引（MyISAM）</h3><ul>
+<li>前缀压缩减少索引大小，使更多索引可以放入内存</li>
+<li>默认只压缩字符串，参数设置可对整数压缩</li>
+<li>完全保存索引块第一个值，将其他与第一个值完全相同前缀字节数和剩余不同后缀字符完全存储<ul>
+<li>例：perform与performance，第一个存储perform，第二个存储7,ance</li>
+<li>MyISAM对行指针类似前缀压缩</li>
+</ul>
+</li>
+<li>压缩块使用更少空间，代价是操作可能更慢<ul>
+<li>压缩前缀依赖前面的值，MyISAM无法索引块完成二分查找只能从头扫描</li>
+<li>正序还不错，倒叙就不行</li>
+</ul>
+</li>
+<li>CPU密集型应用，因为扫描需要随机查找，压缩索引使得MyISAM在索引查找慢好几倍。对于IO密集型应用，查询带来好处多</li>
+<li>CREATE TABLE时指定PACK_KEYS控制索引压缩方式</li>
+</ul>
+<h3 id="冗余和重复索引"><a href="#冗余和重复索引" class="headerlink" title="冗余和重复索引"></a>冗余和重复索引</h3><ul>
+<li>MySQL需要单独维护重复的索引，优化器在优化查询时需要逐个考虑，影响性能</li>
+<li>在相同列创建相同类型索引，应避免创建重复索引，发现立即移除</li>
+<li>冗余索引和重复索引不同<ul>
+<li>(A,B)与A；（A,ID）与（A）；（A,B）与（B,A）不是</li>
+</ul>
+</li>
+<li>增加索引会使插入变慢<ul>
+<li>访问INFORMATION_SCHEMA表查询<ul>
+<li>服务器有大量数据或大量表查询INFORMATION_SCHEMA会导致性能问题</li>
+</ul>
+</li>
+<li>common_schema的视图定位<ul>
+<li>一系列可以安装到服务器常用的存储和视图</li>
+</ul>
+</li>
+<li>pt-duplicate-key-checker</li>
+</ul>
+</li>
+<li>检查变更<ul>
+<li>（A）与(A,ID)与(A,B,ID)索引排序，建议使用pt-upgrade检查计划变更</li>
+</ul>
+</li>
+</ul>
+<h3 id="未使用的索引"><a href="#未使用的索引" class="headerlink" title="未使用的索引"></a>未使用的索引</h3><ul>
+<li>累赘，删除</li>
+<li>PerconaServer或MariaDB打开userstates变量，服务器运行一段时间后通过INFORMATION_SCHEMA.INDEX_STATISTICS查到索引使用频率</li>
+<li>PerconaToolkit的pt-index-usage,该工具读取日志，对日志每条查询EXPLAIN，打印索引和查询报告</li>
+</ul>
+<h3 id="索引和锁"><a href="#索引和锁" class="headerlink" title="索引和锁"></a>索引和锁</h3><ul>
+<li>索引可以让查询锁定更少行<ul>
+<li>减少锁定行的开销</li>
+<li>减少锁争用增加并发</li>
+</ul>
+</li>
+<li>通过减少查询行数减少锁数量<ul>
+<li>5.1以前等待事务执行完释放锁，以后等待过滤掉行后就释放锁</li>
+</ul>
+</li>
+<li>关于InnoDB、索引和锁<ul>
+<li>InnoDB在二级索引上使用共享锁（读），但方位主键索引需要排他（写）锁，这消除了使用覆盖索引可能性，并且使得SELECT FOR UPDATE比LOCK IN SHARE MODE或非锁定查询要慢得多</li>
+</ul>
+</li>
+</ul>
+<h2 id="索引案例学习"><a href="#索引案例学习" class="headerlink" title="索引案例学习"></a>索引案例学习</h2><h3 id="支持多种过滤条件"><a href="#支持多种过滤条件" class="headerlink" title="支持多种过滤条件"></a>支持多种过滤条件</h3><ul>
+<li>不通知更多的列创建索引性能更好，索引可以过滤掉更多的行</li>
+<li>考虑表上所有选项</li>
+<li>尽可能将需要范围查询的列放到索引后面</li>
+<li>IN的技巧不能滥用，存在枚举增加组合增加最终大大降低性能</li>
+</ul>
+<h3 id="避免多个范围条件"><a href="#避免多个范围条件" class="headerlink" title="避免多个范围条件"></a>避免多个范围条件</h3><ul>
+<li>范围条件<ul>
+<li>EXPLAIN区分查询范围值还是查询列表值，使用同样的词range，可以从值得范围和多个等于条件得出不同</li>
+<li>对于范围条件查询（&gt;、&lt;等）mysql无法使用后面的索引了，对于多个等值条件(in)则没有该限制</li>
+</ul>
+</li>
+<li>多范围条件可以通过替换范围为特定等值加入索引</li>
+</ul>
+<h3 id="优化排序"><a href="#优化排序" class="headerlink" title="优化排序"></a>优化排序</h3><ul>
+<li>对选择性低的列，增加特殊索引来排序</li>
+<li>选择性低的列翻页<ul>
+<li>反范式化、预先计算和缓存为解决这类查询仅有的策略</li>
+<li>延迟关联<ul>
+<li>覆盖索引返回主键，再通过主键关联需要的行</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="维护索引和表"><a href="#维护索引和表" class="headerlink" title="维护索引和表"></a>维护索引和表</h2><h3 id="找到并修复损坏的表"><a href="#找到并修复损坏的表" class="headerlink" title="找到并修复损坏的表"></a>找到并修复损坏的表</h3><ul>
+<li>MyISAM损坏通常是系统崩溃导致，其他引擎用于硬件问题，MYSQL本身缺陷或操作系统问题导致索引损坏</li>
+<li>导致返回错误结果或莫须有的主键冲突，严重导致数据库崩溃<ul>
+<li>check table检查错误</li>
+<li>repair table修复表<ul>
+<li>可以alter修改重建表，比如切换引擎</li>
+</ul>
+</li>
+<li>离线工具myisamchk</li>
+<li>到处数据再导入<ul>
+<li>如果损坏的是系统区域或者表行数据区域而不是索引，不管用</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>InnoDB的设计原因一般不会损坏，如果损坏则是发生严重错误（数据库硬件问题，管理员错误，rsync备份InndDB）</li>
+<li>设置innodb_force_recovery参数进入Innodb强制回复模式来修复数据</li>
+</ul>
+<h3 id="更新索引统计信息"><a href="#更新索引统计信息" class="headerlink" title="更新索引统计信息"></a>更新索引统计信息</h3><ul>
+<li>查询优化器俩API了解存储引擎索引值分布<ul>
+<li>records_in_range()</li>
+<li>info()</li>
+</ul>
+</li>
+<li>表没有统计信息或不准启，优化器可能做出错误的决定，可ANALYZE TABLE重新生成统计信息<ul>
+<li>memory不存储索引统计信息</li>
+<li>myisam将索引统计存储磁盘，ANALYZE需要进行全索引扫描来计算索引基数，过程需要锁表</li>
+<li>innodb通过随机索引访问进行评估将其存储内存</li>
+</ul>
+</li>
+<li>SHOW INDEX FROM查看索引基数</li>
+<li>INFORMATION_SCHEMA.STATISTICS查询</li>
+<li>INNODB抽样计算统计，老版本样本页面8，新版本通过innodb_stats_sample_pages设置</li>
+<li>innodb在表首次打开，或者执行ANALYZE TABLE，或表大小发生非常打的变化的时候计算索引统计信息</li>
+<li>INNODB在打开某些INFORMATION_SCHEMA或show table status或show index或客户端开启自动补全功能出发索引统计信息更新<ul>
+<li>如果有大量数据，当io较慢时，客户端或者监控程序出发索引菜鸡更新可能导致大量的锁，给服务器带来额外压力。可以关闭innodb_stats_on_metadata</li>
+</ul>
+</li>
+<li>percona版本使用的XtraDB引擎而不是InnodB,KEYI TONGGUO Innodb_stats_auto_update禁止自动采用，需要手动执行ANALYZE TABLE</li>
+<li>持久化设置 innodb_use_sys_stats_table(5.1)、innodb_analyze_is_persistent(5.6)</li>
+<li>关闭自动统计，需要周期性使用ANALYZE TABLE手动更新</li>
+</ul>
+<h3 id="减少索引和数据碎片"><a href="#减少索引和数据碎片" class="headerlink" title="减少索引和数据碎片"></a>减少索引和数据碎片</h3><ul>
+<li>B-Tree结构随机访问磁盘，可能会碎片化</li>
+<li>表数据存储碎片化<ul>
+<li>行碎片</li>
+<li>行间碎片<ul>
+<li>逻辑上顺序的页，或者行在磁盘不是顺序存储</li>
+</ul>
+</li>
+<li>剩余空间碎片<ul>
+<li>数据页中大量空余空间</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>处理方式<ul>
+<li>OPTIMIZE TABLE或者导出再导入</li>
+<li>不支持OPTIMIZE的可ALTER TABLE重建表<ul>
+<li>expand_fast_index_creation碎片化整理</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </article>
+
+  
+      
+    <div class="nexmoe-post-copyright">
+        <strong>本文作者：</strong>Tiki Xiang<br>
+        <strong>本文链接：</strong><a href="http://blog.tiki-xiang.cn/2022/03/17/%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%BA%94%E7%AB%A0-%E5%88%9B%E5%BB%BA%E9%AB%98%E6%80%A7%E8%83%BD%E7%9A%84%E7%B4%A2%E5%BC%95/" title="http:&#x2F;&#x2F;blog.tiki-xiang.cn&#x2F;2022&#x2F;03&#x2F;17&#x2F;%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%BA%94%E7%AB%A0-%E5%88%9B%E5%BB%BA%E9%AB%98%E6%80%A7%E8%83%BD%E7%9A%84%E7%B4%A2%E5%BC%95&#x2F;" target="_blank" rel="noopener">http:&#x2F;&#x2F;blog.tiki-xiang.cn&#x2F;2022&#x2F;03&#x2F;17&#x2F;%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%BA%94%E7%AB%A0-%E5%88%9B%E5%BB%BA%E9%AB%98%E6%80%A7%E8%83%BD%E7%9A%84%E7%B4%A2%E5%BC%95&#x2F;</a><br>
+        
+            <strong>版权声明：</strong>本文采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/cn/deed.zh" target="_blank">CC BY-NC-SA 3.0 CN</a> 协议进行许可
+        
+    </div>
+
+
+  
+  
+  <div class="nexmoe-post-meta nexmoe-rainbow">
+    
+        <a class="nexmoefont icon-appstore-fill -link" href="/categories/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">读书笔记</a>
+    
+    
+        <a class="nexmoefont icon-tag-fill -none-link" href="/tags/MySql/" rel="tag">MySql</a> <a class="nexmoefont icon-tag-fill -none-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a> <a class="nexmoefont icon-tag-fill -none-link" href="/tags/%E9%AB%98%E6%80%A7%E8%83%BDMySql/" rel="tag">高性能MySql</a>
+    
+</div>
+
+  
+      <div class="nexmoe-post-footer">
+          
+      </div>
+  
+</div>
+            <div class="nexmoe-post-right">
+              <div class="nexmoe-fixed">
+                  <div class="nexmoe-tool"> 
+                    
+                      
+                        
+                          
+                          
+                              <button class="mdui-fab catalog" style="overflow:unset;">
+                                  <i class="nexmoefont icon-i-catalog"></i>
+                                  <div class="nexmoe-toc">
+                                      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E9%AB%98%E6%80%A7%E8%83%BD%E7%9A%84%E7%B4%A2%E5%BC%95"><span class="toc-number">1.</span> <span class="toc-text">创建高性能的索引</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%B4%A2%E5%BC%95%E5%9F%BA%E7%A1%80"><span class="toc-number">1.1.</span> <span class="toc-text">索引基础</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%B4%A2%E5%BC%95%E7%9A%84%E7%B1%BB%E5%9E%8B"><span class="toc-number">1.1.1.</span> <span class="toc-text">索引的类型</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%B4%A2%E5%BC%95%E7%9A%84%E4%BC%98%E7%82%B9"><span class="toc-number">1.2.</span> <span class="toc-text">索引的优点</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%B4%A2%E5%BC%95%E5%A4%A7%E5%A4%A7%E5%87%8F%E5%B0%91%E6%9C%8D%E5%8A%A1%E5%99%A8%E9%9C%80%E8%A6%81%E6%89%AB%E6%8F%8F%E7%9A%84%E6%95%B0%E6%8D%AE%E9%87%8F"><span class="toc-number">1.2.1.</span> <span class="toc-text">索引大大减少服务器需要扫描的数据量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%B4%A2%E5%BC%95%E5%8F%AF%E4%BB%A5%E5%B8%AE%E5%8A%A9%E6%9C%8D%E5%8A%A1%E5%99%A8%E9%81%BF%E5%85%8D%E6%8E%92%E5%BA%8F%E5%92%8C%E4%B8%B4%E6%97%B6%E8%A1%A8"><span class="toc-number">1.2.2.</span> <span class="toc-text">索引可以帮助服务器避免排序和临时表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%B4%A2%E5%BC%95%E5%8F%AF%E4%BB%A5%E5%B0%86%E9%9A%8F%E6%9C%BAIO%E5%8F%98%E4%B8%BA%E9%A1%BA%E5%BA%8FIO"><span class="toc-number">1.2.3.</span> <span class="toc-text">索引可以将随机IO变为顺序IO</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%AB%98%E6%80%A7%E8%83%BD%E7%9A%84%E7%B4%A2%E5%BC%95%E7%AD%96%E7%95%A5"><span class="toc-number">1.3.</span> <span class="toc-text">高性能的索引策略</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%8B%AC%E7%AB%8B%E7%9A%84%E5%88%97%EF%BC%88%E7%B4%A2%E5%BC%95%E5%88%97%E4%B8%8D%E8%83%BD%E6%98%AF%E8%A1%A8%E8%BE%BE%E5%BC%8F%E7%9A%84%E4%B8%80%E9%83%A8%E5%88%86%EF%BC%8C%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%98%AF%E5%87%BD%E6%95%B0%E7%9A%84%E5%8F%82%E6%95%B0%EF%BC%89"><span class="toc-number">1.3.1.</span> <span class="toc-text">独立的列（索引列不能是表达式的一部分，也不能是函数的参数）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%89%8D%E7%BC%80%E7%B4%A2%E5%BC%95%E5%92%8C%E7%B4%A2%E5%BC%95%E9%80%89%E6%8B%A9%E6%80%A7%EF%BC%88%E4%B8%8D%E9%87%8D%E5%A4%8D%E7%9A%84%E7%B4%A2%E5%BC%95%E5%80%BC%EF%BC%88%E5%9F%BA%E6%95%B0%EF%BC%89-x2F-%E6%95%B0%E6%8D%AE%E8%A1%A8%E8%AE%B0%E5%BD%95%E6%80%BB%E6%95%B0%EF%BC%89"><span class="toc-number">1.3.2.</span> <span class="toc-text">前缀索引和索引选择性（不重复的索引值（基数）&#x2F;数据表记录总数）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%9A%E5%88%97%E7%B4%A2%E5%BC%95"><span class="toc-number">1.3.3.</span> <span class="toc-text">多列索引</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%89%E6%8B%A9%E5%90%88%E9%80%82%E7%9A%84%E7%B4%A2%E5%BC%95%E5%88%97%E9%A1%BA%E5%BA%8F"><span class="toc-number">1.3.4.</span> <span class="toc-text">选择合适的索引列顺序</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%81%9A%E7%B0%87%E7%B4%A2%E5%BC%95"><span class="toc-number">1.3.5.</span> <span class="toc-text">聚簇索引</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A6%86%E7%9B%96%E7%B4%A2%E5%BC%95%EF%BC%88%E5%8C%85%E5%90%AB%E6%88%96%E8%80%85%E8%A6%86%E7%9B%96%E6%89%80%E6%9C%89%E9%9C%80%E8%A6%81%E6%9F%A5%E8%AF%A2%E7%9A%84%E5%AD%97%E6%AE%B5%E7%9A%84%E5%80%BC%EF%BC%8C%E6%97%A0%E9%9C%80%E5%9B%9E%E8%A1%A8%EF%BC%89"><span class="toc-number">1.3.6.</span> <span class="toc-text">覆盖索引（包含或者覆盖所有需要查询的字段的值，无需回表）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E7%B4%A2%E5%BC%95%E6%89%AB%E6%8F%8F%E6%9D%A5%E5%81%9A%E6%8E%92%E5%BA%8F"><span class="toc-number">1.3.7.</span> <span class="toc-text">使用索引扫描来做排序</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8E%8B%E7%BC%A9%EF%BC%88%E5%89%8D%E7%BC%80%E5%8E%8B%E7%BC%A9%EF%BC%89%E7%B4%A2%E5%BC%95%EF%BC%88MyISAM%EF%BC%89"><span class="toc-number">1.3.8.</span> <span class="toc-text">压缩（前缀压缩）索引（MyISAM）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%97%E4%BD%99%E5%92%8C%E9%87%8D%E5%A4%8D%E7%B4%A2%E5%BC%95"><span class="toc-number">1.3.9.</span> <span class="toc-text">冗余和重复索引</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%AA%E4%BD%BF%E7%94%A8%E7%9A%84%E7%B4%A2%E5%BC%95"><span class="toc-number">1.3.10.</span> <span class="toc-text">未使用的索引</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%B4%A2%E5%BC%95%E5%92%8C%E9%94%81"><span class="toc-number">1.3.11.</span> <span class="toc-text">索引和锁</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%B4%A2%E5%BC%95%E6%A1%88%E4%BE%8B%E5%AD%A6%E4%B9%A0"><span class="toc-number">1.4.</span> <span class="toc-text">索引案例学习</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%94%AF%E6%8C%81%E5%A4%9A%E7%A7%8D%E8%BF%87%E6%BB%A4%E6%9D%A1%E4%BB%B6"><span class="toc-number">1.4.1.</span> <span class="toc-text">支持多种过滤条件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%81%BF%E5%85%8D%E5%A4%9A%E4%B8%AA%E8%8C%83%E5%9B%B4%E6%9D%A1%E4%BB%B6"><span class="toc-number">1.4.2.</span> <span class="toc-text">避免多个范围条件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BC%98%E5%8C%96%E6%8E%92%E5%BA%8F"><span class="toc-number">1.4.3.</span> <span class="toc-text">优化排序</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%B4%E6%8A%A4%E7%B4%A2%E5%BC%95%E5%92%8C%E8%A1%A8"><span class="toc-number">1.5.</span> <span class="toc-text">维护索引和表</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%BE%E5%88%B0%E5%B9%B6%E4%BF%AE%E5%A4%8D%E6%8D%9F%E5%9D%8F%E7%9A%84%E8%A1%A8"><span class="toc-number">1.5.1.</span> <span class="toc-text">找到并修复损坏的表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E7%B4%A2%E5%BC%95%E7%BB%9F%E8%AE%A1%E4%BF%A1%E6%81%AF"><span class="toc-number">1.5.2.</span> <span class="toc-text">更新索引统计信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%87%8F%E5%B0%91%E7%B4%A2%E5%BC%95%E5%92%8C%E6%95%B0%E6%8D%AE%E7%A2%8E%E7%89%87"><span class="toc-number">1.5.3.</span> <span class="toc-text">减少索引和数据碎片</span></a></li></ol></li></ol></li></ol>
+                                  </div>
+                              </button>
+                          
+                          
+                      
+                    
+                      <a href="#nexmoe-content" class="toc-link" aria-label="回到顶部" title="top"><button class="mdui-fab mdui-ripple"><i class="nexmoefont icon-caret-top"></i></button></a>
+                  </div>
+              </div>
+            </div>
+        </div>
+    </div>
+     
+    <div id="nexmoe-search-space">
+        <div class="search-container">
+            <div class="search-header">
+                <div class="search-input-container">
+                    <input class="search-input" type="text" placeholder="搜索" oninput="sinput();">
+                </div>
+                <a class="search-close" onclick="sclose();">×</a>
+            </div>
+            <div class="search-body"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/combine/npm/lazysizes@5.1.0/lazysizes.min.js,npm/mdui@0.4.3/dist/js/mdui.min.js?v=1"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+
+ 
+
+<script async src="/js/app.js?v=1647517914895"></script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/js/jquery.justifiedGallery.min.js"></script>
+<script>
+	$(".justified-gallery").justifiedGallery({
+		rowHeight: 160,
+		margins: 10,
+	});
+</script>
+
+
+    
+
+
+
+
+
+</body>
+
+</html>

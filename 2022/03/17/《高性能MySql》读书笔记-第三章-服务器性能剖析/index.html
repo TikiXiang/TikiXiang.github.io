@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+
+<head>
+    
+    <title>《高性能MySql》读书笔记--第三章 服务器性能剖析 - Tiki Xiang的博客</title>
+    <meta charset="UTF-8">
+    <meta name="keywords" content="博客;tiki;xiang">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    
+    
+
+    <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon" />
+    <meta name="description" content="服务器性能剖析性能优化简介">
+<meta property="og:type" content="article">
+<meta property="og:title" content="《高性能MySql》读书笔记--第三章 服务器性能剖析">
+<meta property="og:url" content="http://blog.tiki-xiang.cn/2022/03/17/%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%B8%89%E7%AB%A0-%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%80%A7%E8%83%BD%E5%89%96%E6%9E%90/index.html">
+<meta property="og:site_name" content="Tiki Xiang的博客">
+<meta property="og:description" content="服务器性能剖析性能优化简介">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-03-17T11:40:52.000Z">
+<meta property="article:modified_time" content="2022-03-17T11:43:26.282Z">
+<meta property="article:author" content="Tiki Xiang">
+<meta property="article:tag" content="高性能MySql">
+<meta property="article:tag" content="MySql">
+<meta property="article:tag" content="数据库">
+<meta name="twitter:card" content="summary">
+    <link rel="stylesheet" href="/lib/jquery.fancybox.min.css?v=1647517914904">
+    
+        <link rel="stylesheet" href="//at.alicdn.com/t/font_3253964_4orv58tg7c4.css">
+    
+    <link rel="stylesheet" href="/lib/mdui_043tiny/css/mdui.css?v=1647517914904">
+    <link rel="stylesheet" href="/lib/iconfont/iconfont.css?v=1647517914904">
+    <link rel="stylesheet" href="/css/style.css?v=1647517914904">
+     
+    
+        <link rel="stylesheet" href="/custom.css">
+    
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+<body class="mdui-drawer-body-left">
+    
+    <div id="nexmoe-background">
+        <div class="nexmoe-bg" style="background-image: url(/images/back.jpg)"></div>
+        <div class="mdui-appbar mdui-shadow-0">
+            <div class="mdui-toolbar">
+                <a mdui-drawer="{target: '#drawer', swipe: true}" title="menu" class="mdui-btn mdui-btn-icon mdui-ripple"><i class="mdui-icon nexmoefont icon-menu"></i></a>
+                <div class="mdui-toolbar-spacer"></div>
+                <!--<a href="javascript:;" class="mdui-btn mdui-btn-icon"><i class="mdui-icon material-icons">search</i></a>-->
+                <a href="/" title="Tiki Xiang" class="mdui-btn mdui-btn-icon"><img src="/images/pic2.jpg" alt="Tiki Xiang"></a>
+            </div>
+        </div>
+    </div>
+    <div id="nexmoe-header">
+        <div class="nexmoe-drawer mdui-drawer" id="drawer">
+    <div class="nexmoe-avatar mdui-ripple">
+        <a href="/" title="Tiki Xiang">
+            <img src="/images/pic2.jpg" alt="Tiki Xiang" alt="Tiki Xiang">
+        </a>
+    </div>
+    <div class="nexmoe-count">
+        <div><span>文章</span>5</div>
+        <div><span>标签</span>3</div>
+        <div><span>分类</span>1</div>
+    </div>
+    <div class="nexmoe-list mdui-list" mdui-collapse="{accordion: true}">
+        
+        <a class="nexmoe-list-item mdui-list-item mdui-ripple false" href="/" title="回到首页">
+            <i class="mdui-list-item-icon nexmoefont icon-fire-bollon"></i>
+            <div class="mdui-list-item-content">
+                回到首页
+            </div>
+        </a>
+        
+        <a class="nexmoe-list-item mdui-list-item mdui-ripple false" href="/archive.html" title="文章归档">
+            <i class="mdui-list-item-icon nexmoefont icon-sun"></i>
+            <div class="mdui-list-item-content">
+                文章归档
+            </div>
+        </a>
+        
+        <a class="nexmoe-list-item mdui-list-item mdui-ripple false" href="/about.html" title="关于博客">
+            <i class="mdui-list-item-icon nexmoefont icon-unbrella"></i>
+            <div class="mdui-list-item-content">
+                关于博客
+            </div>
+        </a>
+        
+        <a class="nexmoe-list-item mdui-list-item mdui-ripple false" href="/friends.html" title="我的朋友">
+            <i class="mdui-list-item-icon nexmoefont icon-watermellon"></i>
+            <div class="mdui-list-item-content">
+                我的朋友
+            </div>
+        </a>
+        
+    </div>
+    <aside id="nexmoe-sidebar">
+    
+    <div class="nexmoe-widget-wrap">
+    <div class="nexmoe-widget nexmoe-search">
+         
+            <form id="search_form" action_e="https://cn.bing.com/search?q=localhost:4000# 搜索引擎地址，在type为swiftype时无效 e.g:https://www.google.com/search?q={你的博客链接}" onsubmit="return search();">
+                <label><input id="search_value" name="q" type="search" placeholder="搜索"></label>
+            </form>
+         
+    </div>
+</div>
+    
+    <div class="nexmoe-widget-wrap">
+    <div class="nexmoe-widget nexmoe-social">
+        <a class="mdui-ripple" href="https://jq.qq.com/?_wv=1027&k=5CfKHun" target="_blank" mdui-tooltip="{content: 'QQ群'}" style="color: rgb(249, 174, 8);background-color: rgba(249, 174, 8, .1);">
+            <i class="nexmoefont icon-QQ"></i>
+        </a><a class="mdui-ripple" href="https://space.bilibili.com/20238211" target="_blank" mdui-tooltip="{content: '哔哩哔哩'}" style="color: rgb(231, 106, 141);background-color: rgba(231, 106, 141, .15);">
+            <i class="nexmoefont icon-bilibili"></i>
+        </a><a class="mdui-ripple" href="https://github.com/nexmoe/" target="_blank" mdui-tooltip="{content: 'GitHub'}" style="color: rgb(25, 23, 23);background-color: rgba(25, 23, 23, .15);">
+            <i class="nexmoefont icon-github"></i>
+        </a>
+    </div>
+</div>
+    
+    
+  <div class="nexmoe-widget-wrap">
+    <h3 class="nexmoe-widget-title">文章分类</h3>
+    <div class="nexmoe-widget">
+
+      <ul class="category-list">
+
+        
+
+
+        
+
+        
+
+        <li class="category-list-item">
+          <a class="category-list-link" href="/categories/读书笔记/">读书笔记</a>
+          <span class="category-list-count">5</span>
+        </li>
+
+        
+      </ul>
+
+    </div>
+  </div>
+
+
+    
+    
+  <div class="nexmoe-widget-wrap">
+    <div id="randomtagcloud" class="nexmoe-widget tagcloud nexmoe-rainbow">
+      <a href="/tags/MySql/" style="font-size: 10px;">MySql</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 10px;">数据库</a> <a href="/tags/%E9%AB%98%E6%80%A7%E8%83%BDMySql/" style="font-size: 10px;">高性能MySql</a>
+    </div>
+    
+  </div>
+
+    
+    
+  <div class="nexmoe-widget-wrap">
+    <h3 class="nexmoe-widget-title">文章归档</h3>
+    <div class="nexmoe-widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/">2022</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+
+    
+    
+  <div class="nexmoe-widget-wrap">
+    <h3 class="nexmoe-widget-title">最新文章</h3>
+    <div class="nexmoe-widget">
+      <ul>
+        
+          <li>
+            <a href="/2022/03/17/%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%BA%94%E7%AB%A0-%E5%88%9B%E5%BB%BA%E9%AB%98%E6%80%A7%E8%83%BD%E7%9A%84%E7%B4%A2%E5%BC%95/">《高性能MySql》读书笔记--第五章 创建高性能的索引</a>
+          </li>
+        
+          <li>
+            <a href="/2022/03/17/%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E5%9B%9B%E7%AB%A0-Schema%E4%B8%8E%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E4%BC%98%E5%8C%96/">《高性能MySql》读书笔记--第四章 Schema与数据类型优化</a>
+          </li>
+        
+          <li>
+            <a href="/2022/03/17/%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%B8%89%E7%AB%A0-%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%80%A7%E8%83%BD%E5%89%96%E6%9E%90/">《高性能MySql》读书笔记--第三章 服务器性能剖析</a>
+          </li>
+        
+          <li>
+            <a href="/2022/03/17/%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%BA%8C%E7%AB%A0-%E5%9F%BA%E5%87%86%E6%B5%8B%E8%AF%95/">《高性能MySql》读书笔记--第二章 基准测试</a>
+          </li>
+        
+          <li>
+            <a href="/2022/03/17/%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%B8%80%E7%AB%A0-%E6%9E%B6%E6%9E%84%E4%B8%8E%E5%8E%86%E5%8F%B2/">《高性能MySql》读书笔记--第一章 架构与历史</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+    
+</aside>
+    <div class="nexmoe-copyright">
+        &copy; 2022 Tiki Xiang
+        Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+        & <a href="https://github.com/theme-nexmoe/hexo-theme-nexmoe" target="_blank">Nexmoe</a>
+        <br><a target="_blank" href="https://www.upyun.com/?utm_source=lianmeng&utm_medium=referral"><img src="https://i.dawnlab.me/c0268c1e6cfd0863d6ba35be1575941a.png" width="150px"></a><script data-ad-client="ca-pub-2058306854838448" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    </div>
+</div><!-- .nexmoe-drawer -->
+    </div>
+    <div id="nexmoe-content">
+        <div class="nexmoe-primary">
+            <div class="nexmoe-post">
+
+  <article>
+      
+          <div class="nexmoe-post-cover" style="padding-bottom: 66.66666666666666%;"> 
+              <img data-src="/images/back.jpg" data-sizes="auto" alt="《高性能MySql》读书笔记--第三章 服务器性能剖析" class="lazyload">
+              <h1>《高性能MySql》读书笔记--第三章 服务器性能剖析</h1>
+          </div>
+      
+      
+      <div class="nexmoe-post-meta nexmoe-rainbow" style="margin:10px 0!important;">
+    <a><i class="nexmoefont icon-calendar-fill"></i>2022年03月17日</a>
+</div>
+
+      
+
+      <h1 id="服务器性能剖析"><a href="#服务器性能剖析" class="headerlink" title="服务器性能剖析"></a>服务器性能剖析</h1><h2 id="性能优化简介"><a href="#性能优化简介" class="headerlink" title="性能优化简介"></a>性能优化简介</h2><span id="more"></span>
+
+<h3 id="通过性能剖析进行优化"><a href="#通过性能剖析进行优化" class="headerlink" title="通过性能剖析进行优化"></a>通过性能剖析进行优化</h3><ul>
+<li>测量任务所花费时间</li>
+<li>对结果统计与排序</li>
+</ul>
+<h3 id="理解性能剖析"><a href="#理解性能剖析" class="headerlink" title="理解性能剖析"></a>理解性能剖析</h3><ul>
+<li>排名、总计、平均值</li>
+<li>值得优化的查询</li>
+<li>异常情况</li>
+<li>未知的未知</li>
+<li>被隐藏的细节</li>
+</ul>
+<h2 id="对应用程序进行性能剖析"><a href="#对应用程序进行性能剖析" class="headerlink" title="对应用程序进行性能剖析"></a>对应用程序进行性能剖析</h2><h3 id="工具推荐：New-relic"><a href="#工具推荐：New-relic" class="headerlink" title="工具推荐：New relic"></a>工具推荐：New relic</h3><h3 id="测量php应用程序"><a href="#测量php应用程序" class="headerlink" title="测量php应用程序"></a>测量php应用程序</h3><ul>
+<li>xhprof</li>
+</ul>
+<h2 id="剖析MySQL查询"><a href="#剖析MySQL查询" class="headerlink" title="剖析MySQL查询"></a>剖析MySQL查询</h2><h3 id="剖析服务器负载"><a href="#剖析服务器负载" class="headerlink" title="剖析服务器负载"></a>剖析服务器负载</h3><ul>
+<li>捕获MySQL的查询到日志文件（慢查询日志）</li>
+<li>分析查询日志（pt-query-digest日志生成报告工具）</li>
+</ul>
+<h3 id="剖析单挑查询"><a href="#剖析单挑查询" class="headerlink" title="剖析单挑查询"></a>剖析单挑查询</h3><ul>
+<li>使用SHOW PROFILE查询花费</li>
+<li>使用SHOW STATUS查询计数器</li>
+<li>使用慢查询日志</li>
+<li>使用Performance Schema</li>
+</ul>
+<h3 id="使用性能剖析"><a href="#使用性能剖析" class="headerlink" title="使用性能剖析"></a>使用性能剖析</h3><h2 id="诊断间歇性问题"><a href="#诊断间歇性问题" class="headerlink" title="诊断间歇性问题"></a>诊断间歇性问题</h2><h3 id="确定是单挑查询问题还是服务器问题"><a href="#确定是单挑查询问题还是服务器问题" class="headerlink" title="确定是单挑查询问题还是服务器问题"></a>确定是单挑查询问题还是服务器问题</h3><ul>
+<li>使用SHOW GLOBAL STATUS</li>
+<li>SHOW PROCESSLIST</li>
+<li>使用查询日志</li>
+<li>理解发现的问题（推荐图）</li>
+</ul>
+<h3 id="捕获诊断数据"><a href="#捕获诊断数据" class="headerlink" title="捕获诊断数据"></a>捕获诊断数据</h3><ul>
+<li>诊断触发器(Persona Tolkit：pt-stalk)</li>
+<li>需要收集什么样的数据<ul>
+<li>系统状态、CPUY利用率、磁盘使用率和可用空间、ps输出采样、内存利用率</li>
+</ul>
+</li>
+<li>解释结果数据 （pt-mysql-summary;pt-summary打包；pt-sift：检查样本）</li>
+</ul>
+<h3 id="诊断案例"><a href="#诊断案例" class="headerlink" title="诊断案例"></a>诊断案例</h3><h2 id="其他剖析工具"><a href="#其他剖析工具" class="headerlink" title="其他剖析工具"></a>其他剖析工具</h2><h3 id="使用USER-STATISTICS表"><a href="#使用USER-STATISTICS表" class="headerlink" title="使用USER_STATISTICS表"></a>使用USER_STATISTICS表</h3><h3 id="使用strace（系统使用情况）"><a href="#使用strace（系统使用情况）" class="headerlink" title="使用strace（系统使用情况）"></a>使用strace（系统使用情况）</h3>
+  </article>
+
+  
+      
+    <div class="nexmoe-post-copyright">
+        <strong>本文作者：</strong>Tiki Xiang<br>
+        <strong>本文链接：</strong><a href="http://blog.tiki-xiang.cn/2022/03/17/%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%B8%89%E7%AB%A0-%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%80%A7%E8%83%BD%E5%89%96%E6%9E%90/" title="http:&#x2F;&#x2F;blog.tiki-xiang.cn&#x2F;2022&#x2F;03&#x2F;17&#x2F;%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%B8%89%E7%AB%A0-%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%80%A7%E8%83%BD%E5%89%96%E6%9E%90&#x2F;" target="_blank" rel="noopener">http:&#x2F;&#x2F;blog.tiki-xiang.cn&#x2F;2022&#x2F;03&#x2F;17&#x2F;%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%B8%89%E7%AB%A0-%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%80%A7%E8%83%BD%E5%89%96%E6%9E%90&#x2F;</a><br>
+        
+            <strong>版权声明：</strong>本文采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/cn/deed.zh" target="_blank">CC BY-NC-SA 3.0 CN</a> 协议进行许可
+        
+    </div>
+
+
+  
+  
+  <div class="nexmoe-post-meta nexmoe-rainbow">
+    
+        <a class="nexmoefont icon-appstore-fill -link" href="/categories/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">读书笔记</a>
+    
+    
+        <a class="nexmoefont icon-tag-fill -none-link" href="/tags/MySql/" rel="tag">MySql</a> <a class="nexmoefont icon-tag-fill -none-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a> <a class="nexmoefont icon-tag-fill -none-link" href="/tags/%E9%AB%98%E6%80%A7%E8%83%BDMySql/" rel="tag">高性能MySql</a>
+    
+</div>
+
+  
+      <div class="nexmoe-post-footer">
+          
+      </div>
+  
+</div>
+            <div class="nexmoe-post-right">
+              <div class="nexmoe-fixed">
+                  <div class="nexmoe-tool"> 
+                    
+                      
+                        
+                          
+                          
+                              <button class="mdui-fab catalog" style="overflow:unset;">
+                                  <i class="nexmoefont icon-i-catalog"></i>
+                                  <div class="nexmoe-toc">
+                                      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%80%A7%E8%83%BD%E5%89%96%E6%9E%90"><span class="toc-number">1.</span> <span class="toc-text">服务器性能剖析</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B"><span class="toc-number">1.1.</span> <span class="toc-text">性能优化简介</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%9A%E8%BF%87%E6%80%A7%E8%83%BD%E5%89%96%E6%9E%90%E8%BF%9B%E8%A1%8C%E4%BC%98%E5%8C%96"><span class="toc-number">1.1.1.</span> <span class="toc-text">通过性能剖析进行优化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%90%86%E8%A7%A3%E6%80%A7%E8%83%BD%E5%89%96%E6%9E%90"><span class="toc-number">1.1.2.</span> <span class="toc-text">理解性能剖析</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%B9%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E8%BF%9B%E8%A1%8C%E6%80%A7%E8%83%BD%E5%89%96%E6%9E%90"><span class="toc-number">1.2.</span> <span class="toc-text">对应用程序进行性能剖析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B7%A5%E5%85%B7%E6%8E%A8%E8%8D%90%EF%BC%9ANew-relic"><span class="toc-number">1.2.1.</span> <span class="toc-text">工具推荐：New relic</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%8B%E9%87%8Fphp%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F"><span class="toc-number">1.2.2.</span> <span class="toc-text">测量php应用程序</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%96%E6%9E%90MySQL%E6%9F%A5%E8%AF%A2"><span class="toc-number">1.3.</span> <span class="toc-text">剖析MySQL查询</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%89%96%E6%9E%90%E6%9C%8D%E5%8A%A1%E5%99%A8%E8%B4%9F%E8%BD%BD"><span class="toc-number">1.3.1.</span> <span class="toc-text">剖析服务器负载</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%89%96%E6%9E%90%E5%8D%95%E6%8C%91%E6%9F%A5%E8%AF%A2"><span class="toc-number">1.3.2.</span> <span class="toc-text">剖析单挑查询</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E6%80%A7%E8%83%BD%E5%89%96%E6%9E%90"><span class="toc-number">1.3.3.</span> <span class="toc-text">使用性能剖析</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%8A%E6%96%AD%E9%97%B4%E6%AD%87%E6%80%A7%E9%97%AE%E9%A2%98"><span class="toc-number">1.4.</span> <span class="toc-text">诊断间歇性问题</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%A1%AE%E5%AE%9A%E6%98%AF%E5%8D%95%E6%8C%91%E6%9F%A5%E8%AF%A2%E9%97%AE%E9%A2%98%E8%BF%98%E6%98%AF%E6%9C%8D%E5%8A%A1%E5%99%A8%E9%97%AE%E9%A2%98"><span class="toc-number">1.4.1.</span> <span class="toc-text">确定是单挑查询问题还是服务器问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8D%95%E8%8E%B7%E8%AF%8A%E6%96%AD%E6%95%B0%E6%8D%AE"><span class="toc-number">1.4.2.</span> <span class="toc-text">捕获诊断数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%8A%E6%96%AD%E6%A1%88%E4%BE%8B"><span class="toc-number">1.4.3.</span> <span class="toc-text">诊断案例</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B6%E4%BB%96%E5%89%96%E6%9E%90%E5%B7%A5%E5%85%B7"><span class="toc-number">1.5.</span> <span class="toc-text">其他剖析工具</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8USER-STATISTICS%E8%A1%A8"><span class="toc-number">1.5.1.</span> <span class="toc-text">使用USER_STATISTICS表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8strace%EF%BC%88%E7%B3%BB%E7%BB%9F%E4%BD%BF%E7%94%A8%E6%83%85%E5%86%B5%EF%BC%89"><span class="toc-number">1.5.2.</span> <span class="toc-text">使用strace（系统使用情况）</span></a></li></ol></li></ol></li></ol>
+                                  </div>
+                              </button>
+                          
+                          
+                      
+                    
+                      <a href="#nexmoe-content" class="toc-link" aria-label="回到顶部" title="top"><button class="mdui-fab mdui-ripple"><i class="nexmoefont icon-caret-top"></i></button></a>
+                  </div>
+              </div>
+            </div>
+        </div>
+    </div>
+     
+    <div id="nexmoe-search-space">
+        <div class="search-container">
+            <div class="search-header">
+                <div class="search-input-container">
+                    <input class="search-input" type="text" placeholder="搜索" oninput="sinput();">
+                </div>
+                <a class="search-close" onclick="sclose();">×</a>
+            </div>
+            <div class="search-body"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/combine/npm/lazysizes@5.1.0/lazysizes.min.js,npm/mdui@0.4.3/dist/js/mdui.min.js?v=1"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+
+ 
+
+<script async src="/js/app.js?v=1647517914906"></script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/js/jquery.justifiedGallery.min.js"></script>
+<script>
+	$(".justified-gallery").justifiedGallery({
+		rowHeight: 160,
+		margins: 10,
+	});
+</script>
+
+
+    
+
+
+
+
+
+</body>
+
+</html>

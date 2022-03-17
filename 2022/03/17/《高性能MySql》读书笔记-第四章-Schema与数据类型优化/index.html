@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+
+<head>
+    
+    <title>《高性能MySql》读书笔记--第四章 Schema与数据类型优化 - Tiki Xiang的博客</title>
+    <meta charset="UTF-8">
+    <meta name="keywords" content="博客;tiki;xiang">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    
+    
+
+    <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon" />
+    <meta name="description" content="Schema与数据类型优化选择优化的数据类型">
+<meta property="og:type" content="article">
+<meta property="og:title" content="《高性能MySql》读书笔记--第四章 Schema与数据类型优化">
+<meta property="og:url" content="http://blog.tiki-xiang.cn/2022/03/17/%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E5%9B%9B%E7%AB%A0-Schema%E4%B8%8E%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E4%BC%98%E5%8C%96/index.html">
+<meta property="og:site_name" content="Tiki Xiang的博客">
+<meta property="og:description" content="Schema与数据类型优化选择优化的数据类型">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-03-17T11:41:28.000Z">
+<meta property="article:modified_time" content="2022-03-17T11:43:34.185Z">
+<meta property="article:author" content="Tiki Xiang">
+<meta property="article:tag" content="高性能MySql">
+<meta property="article:tag" content="MySql">
+<meta property="article:tag" content="数据库">
+<meta name="twitter:card" content="summary">
+    <link rel="stylesheet" href="/lib/jquery.fancybox.min.css?v=1647517914896">
+    
+        <link rel="stylesheet" href="//at.alicdn.com/t/font_3253964_4orv58tg7c4.css">
+    
+    <link rel="stylesheet" href="/lib/mdui_043tiny/css/mdui.css?v=1647517914896">
+    <link rel="stylesheet" href="/lib/iconfont/iconfont.css?v=1647517914896">
+    <link rel="stylesheet" href="/css/style.css?v=1647517914896">
+     
+    
+        <link rel="stylesheet" href="/custom.css">
+    
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+<body class="mdui-drawer-body-left">
+    
+    <div id="nexmoe-background">
+        <div class="nexmoe-bg" style="background-image: url(/images/back.jpg)"></div>
+        <div class="mdui-appbar mdui-shadow-0">
+            <div class="mdui-toolbar">
+                <a mdui-drawer="{target: '#drawer', swipe: true}" title="menu" class="mdui-btn mdui-btn-icon mdui-ripple"><i class="mdui-icon nexmoefont icon-menu"></i></a>
+                <div class="mdui-toolbar-spacer"></div>
+                <!--<a href="javascript:;" class="mdui-btn mdui-btn-icon"><i class="mdui-icon material-icons">search</i></a>-->
+                <a href="/" title="Tiki Xiang" class="mdui-btn mdui-btn-icon"><img src="/images/pic2.jpg" alt="Tiki Xiang"></a>
+            </div>
+        </div>
+    </div>
+    <div id="nexmoe-header">
+        <div class="nexmoe-drawer mdui-drawer" id="drawer">
+    <div class="nexmoe-avatar mdui-ripple">
+        <a href="/" title="Tiki Xiang">
+            <img src="/images/pic2.jpg" alt="Tiki Xiang" alt="Tiki Xiang">
+        </a>
+    </div>
+    <div class="nexmoe-count">
+        <div><span>文章</span>5</div>
+        <div><span>标签</span>3</div>
+        <div><span>分类</span>1</div>
+    </div>
+    <div class="nexmoe-list mdui-list" mdui-collapse="{accordion: true}">
+        
+        <a class="nexmoe-list-item mdui-list-item mdui-ripple false" href="/" title="回到首页">
+            <i class="mdui-list-item-icon nexmoefont icon-fire-bollon"></i>
+            <div class="mdui-list-item-content">
+                回到首页
+            </div>
+        </a>
+        
+        <a class="nexmoe-list-item mdui-list-item mdui-ripple false" href="/archive.html" title="文章归档">
+            <i class="mdui-list-item-icon nexmoefont icon-sun"></i>
+            <div class="mdui-list-item-content">
+                文章归档
+            </div>
+        </a>
+        
+        <a class="nexmoe-list-item mdui-list-item mdui-ripple false" href="/about.html" title="关于博客">
+            <i class="mdui-list-item-icon nexmoefont icon-unbrella"></i>
+            <div class="mdui-list-item-content">
+                关于博客
+            </div>
+        </a>
+        
+        <a class="nexmoe-list-item mdui-list-item mdui-ripple false" href="/friends.html" title="我的朋友">
+            <i class="mdui-list-item-icon nexmoefont icon-watermellon"></i>
+            <div class="mdui-list-item-content">
+                我的朋友
+            </div>
+        </a>
+        
+    </div>
+    <aside id="nexmoe-sidebar">
+    
+    <div class="nexmoe-widget-wrap">
+    <div class="nexmoe-widget nexmoe-search">
+         
+            <form id="search_form" action_e="https://cn.bing.com/search?q=localhost:4000# 搜索引擎地址，在type为swiftype时无效 e.g:https://www.google.com/search?q={你的博客链接}" onsubmit="return search();">
+                <label><input id="search_value" name="q" type="search" placeholder="搜索"></label>
+            </form>
+         
+    </div>
+</div>
+    
+    <div class="nexmoe-widget-wrap">
+    <div class="nexmoe-widget nexmoe-social">
+        <a class="mdui-ripple" href="https://jq.qq.com/?_wv=1027&k=5CfKHun" target="_blank" mdui-tooltip="{content: 'QQ群'}" style="color: rgb(249, 174, 8);background-color: rgba(249, 174, 8, .1);">
+            <i class="nexmoefont icon-QQ"></i>
+        </a><a class="mdui-ripple" href="https://space.bilibili.com/20238211" target="_blank" mdui-tooltip="{content: '哔哩哔哩'}" style="color: rgb(231, 106, 141);background-color: rgba(231, 106, 141, .15);">
+            <i class="nexmoefont icon-bilibili"></i>
+        </a><a class="mdui-ripple" href="https://github.com/nexmoe/" target="_blank" mdui-tooltip="{content: 'GitHub'}" style="color: rgb(25, 23, 23);background-color: rgba(25, 23, 23, .15);">
+            <i class="nexmoefont icon-github"></i>
+        </a>
+    </div>
+</div>
+    
+    
+  <div class="nexmoe-widget-wrap">
+    <h3 class="nexmoe-widget-title">文章分类</h3>
+    <div class="nexmoe-widget">
+
+      <ul class="category-list">
+
+        
+
+
+        
+
+        
+
+        <li class="category-list-item">
+          <a class="category-list-link" href="/categories/读书笔记/">读书笔记</a>
+          <span class="category-list-count">5</span>
+        </li>
+
+        
+      </ul>
+
+    </div>
+  </div>
+
+
+    
+    
+  <div class="nexmoe-widget-wrap">
+    <div id="randomtagcloud" class="nexmoe-widget tagcloud nexmoe-rainbow">
+      <a href="/tags/MySql/" style="font-size: 10px;">MySql</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 10px;">数据库</a> <a href="/tags/%E9%AB%98%E6%80%A7%E8%83%BDMySql/" style="font-size: 10px;">高性能MySql</a>
+    </div>
+    
+  </div>
+
+    
+    
+  <div class="nexmoe-widget-wrap">
+    <h3 class="nexmoe-widget-title">文章归档</h3>
+    <div class="nexmoe-widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/">2022</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+
+    
+    
+  <div class="nexmoe-widget-wrap">
+    <h3 class="nexmoe-widget-title">最新文章</h3>
+    <div class="nexmoe-widget">
+      <ul>
+        
+          <li>
+            <a href="/2022/03/17/%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%BA%94%E7%AB%A0-%E5%88%9B%E5%BB%BA%E9%AB%98%E6%80%A7%E8%83%BD%E7%9A%84%E7%B4%A2%E5%BC%95/">《高性能MySql》读书笔记--第五章 创建高性能的索引</a>
+          </li>
+        
+          <li>
+            <a href="/2022/03/17/%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E5%9B%9B%E7%AB%A0-Schema%E4%B8%8E%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E4%BC%98%E5%8C%96/">《高性能MySql》读书笔记--第四章 Schema与数据类型优化</a>
+          </li>
+        
+          <li>
+            <a href="/2022/03/17/%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%B8%89%E7%AB%A0-%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%80%A7%E8%83%BD%E5%89%96%E6%9E%90/">《高性能MySql》读书笔记--第三章 服务器性能剖析</a>
+          </li>
+        
+          <li>
+            <a href="/2022/03/17/%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%BA%8C%E7%AB%A0-%E5%9F%BA%E5%87%86%E6%B5%8B%E8%AF%95/">《高性能MySql》读书笔记--第二章 基准测试</a>
+          </li>
+        
+          <li>
+            <a href="/2022/03/17/%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%B8%80%E7%AB%A0-%E6%9E%B6%E6%9E%84%E4%B8%8E%E5%8E%86%E5%8F%B2/">《高性能MySql》读书笔记--第一章 架构与历史</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+    
+</aside>
+    <div class="nexmoe-copyright">
+        &copy; 2022 Tiki Xiang
+        Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+        & <a href="https://github.com/theme-nexmoe/hexo-theme-nexmoe" target="_blank">Nexmoe</a>
+        <br><a target="_blank" href="https://www.upyun.com/?utm_source=lianmeng&utm_medium=referral"><img src="https://i.dawnlab.me/c0268c1e6cfd0863d6ba35be1575941a.png" width="150px"></a><script data-ad-client="ca-pub-2058306854838448" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    </div>
+</div><!-- .nexmoe-drawer -->
+    </div>
+    <div id="nexmoe-content">
+        <div class="nexmoe-primary">
+            <div class="nexmoe-post">
+
+  <article>
+      
+          <div class="nexmoe-post-cover" style="padding-bottom: 66.66666666666666%;"> 
+              <img data-src="/images/back.jpg" data-sizes="auto" alt="《高性能MySql》读书笔记--第四章 Schema与数据类型优化" class="lazyload">
+              <h1>《高性能MySql》读书笔记--第四章 Schema与数据类型优化</h1>
+          </div>
+      
+      
+      <div class="nexmoe-post-meta nexmoe-rainbow" style="margin:10px 0!important;">
+    <a><i class="nexmoefont icon-calendar-fill"></i>2022年03月17日</a>
+</div>
+
+      
+
+      <h1 id="Schema与数据类型优化"><a href="#Schema与数据类型优化" class="headerlink" title="Schema与数据类型优化"></a>Schema与数据类型优化</h1><h2 id="选择优化的数据类型"><a href="#选择优化的数据类型" class="headerlink" title="选择优化的数据类型"></a>选择优化的数据类型</h2><span id="more"></span>
+
+<h3 id="原则"><a href="#原则" class="headerlink" title="原则"></a>原则</h3><ul>
+<li>更小的通常更好（占用更少磁盘内存和CPU缓存，处理时需要CPU周期更少）</li>
+<li>简单就好（简单数据类型需要更少的CPU周期）</li>
+<li>尽量避免NULL（使得索引、索引统计、值比较更为复杂；会使用更多的存储空间；每个索引记录需要一个额外字节）</li>
+</ul>
+<h3 id="整数类型"><a href="#整数类型" class="headerlink" title="整数类型"></a>整数类型</h3><ul>
+<li>类型（TINYINT|8,SMALLINT|16,MEDIUMINT|24,INT|32,BIGINT|64） 范围-2^(N-1)到2^(N-1)-1</li>
+<li>UNSIGNED属性，不允许负值。正数上限提高一倍；相同存储空间，相同性能</li>
+<li>指定宽度（INT(11)，不会限制值得合法范围，只会限制Mysql交互工具显示字符的个数）</li>
+</ul>
+<h3 id="实数类型"><a href="#实数类型" class="headerlink" title="实数类型"></a>实数类型</h3><ul>
+<li>类型（float|4，double|8，decimal（精密计算））</li>
+<li>decimal指定小数点前后位数会影响列空间消耗</li>
+<li>可以变更为bigint存储（乘以倍数）</li>
+</ul>
+<h3 id="字符串类型"><a href="#字符串类型" class="headerlink" title="字符串类型"></a>字符串类型</h3><ul>
+<li>VARCHAR和CHAR（存储方式以存储引擎相关）<ul>
+<li>VARCHAR<ul>
+<li>存储可变长字符串</li>
+<li>UPDATE执行更新存储差异</li>
+</ul>
+</li>
+<li>CHAR<ul>
+<li>定长字符串</li>
+<li>适合较短且长度近似的存储</li>
+</ul>
+</li>
+<li>BINARY&#x2F;VARBINARY<ul>
+<li>存储二进制字节码</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>BLOB与TEXT类型<ul>
+<li>分别采用二进制和字符方式存储</li>
+<li>innodb会使用专门外部存储区域存储，每个值在行内需要1-4个字节存储指针</li>
+<li>BLOB是二进制数据没有排序规则跟字符集，而TEXT有</li>
+<li>MYSQL进行排序仅以配置的max_sort_length字节的字符串排序</li>
+<li>不能将全部长度的字符串进行索引，也不能使用这些索引消除排序</li>
+</ul>
+</li>
+<li>使用枚举（enum）代替字符串类型<ul>
+<li>使用（create table a（b ENUM（’x’,’xx’,’xx’）））</li>
+<li>mysql在存储时非常紧凑，并将每个值在列表位置保存为整数，并在.frm保存数字-字符串的映射关系的查找表</li>
+<li>排序按照映射整数值排序，最好在设计时字符就按照顺序对应</li>
+<li>缺陷是枚举新增需要ALTER TABLE</li>
+</ul>
+</li>
+</ul>
+<h3 id="日期和时间类型"><a href="#日期和时间类型" class="headerlink" title="日期和时间类型"></a>日期和时间类型</h3><ul>
+<li>DATETIME<ul>
+<li>范围（1001-9999）精度为秒，封装为YYYYMMDDHHMMSS的整数中，与时区无关，8个字节</li>
+</ul>
+</li>
+<li>TIMESTAMP<ul>
+<li>范围（19700101（格林尼治时间）以来的秒数），4个组合存储，依赖时区</li>
+</ul>
+</li>
+</ul>
+<h3 id="位数据类型"><a href="#位数据类型" class="headerlink" title="位数据类型"></a>位数据类型</h3><ul>
+<li>BIT<ul>
+<li>在一列存储1个或多个true&#x2F;false值</li>
+<li>mysql当bit为字符串类型</li>
+</ul>
+</li>
+<li>SET<ul>
+<li>在整数列上进行按位操作</li>
+</ul>
+</li>
+</ul>
+<h3 id="选择标识符（identityfier）"><a href="#选择标识符（identityfier）" class="headerlink" title="选择标识符（identityfier）"></a>选择标识符（identityfier）</h3><ul>
+<li>整数类型<ul>
+<li>很快并且可以使用AUTO_INCREMENT</li>
+</ul>
+</li>
+<li>ENUM和SET类型<ul>
+<li>糟糕选择，只适合存储固定信息</li>
+</ul>
+</li>
+<li>字符串类型<ul>
+<li>尽量避免，限号空间，比数字类型慢，myisam会对字符串使用压缩索引，导致查询更慢</li>
+</ul>
+</li>
+</ul>
+<h3 id="特殊类型数据"><a href="#特殊类型数据" class="headerlink" title="特殊类型数据"></a>特殊类型数据</h3><h2 id="Mysql-schema设计中的陷阱"><a href="#Mysql-schema设计中的陷阱" class="headerlink" title="Mysql schema设计中的陷阱"></a>Mysql schema设计中的陷阱</h2><h3 id="太多的列（从行缓冲中将编码过的列转换成行数据结构的操作代价非常高）"><a href="#太多的列（从行缓冲中将编码过的列转换成行数据结构的操作代价非常高）" class="headerlink" title="太多的列（从行缓冲中将编码过的列转换成行数据结构的操作代价非常高）"></a>太多的列（从行缓冲中将编码过的列转换成行数据结构的操作代价非常高）</h3><h3 id="太多的关联-（mysql限制了关联操作最多只能61张表。EAV-实体-属性-值-设计模式需要许多自关联，所以非常糟糕，解析优化查询代价问题明显，经验法则单个查询最好在12个表以内关联）"><a href="#太多的关联-（mysql限制了关联操作最多只能61张表。EAV-实体-属性-值-设计模式需要许多自关联，所以非常糟糕，解析优化查询代价问题明显，经验法则单个查询最好在12个表以内关联）" class="headerlink" title="太多的关联 （mysql限制了关联操作最多只能61张表。EAV(实体-属性-值)设计模式需要许多自关联，所以非常糟糕，解析优化查询代价问题明显，经验法则单个查询最好在12个表以内关联）"></a>太多的关联 （mysql限制了关联操作最多只能61张表。EAV(实体-属性-值)设计模式需要许多自关联，所以非常糟糕，解析优化查询代价问题明显，经验法则单个查询最好在12个表以内关联）</h3><h3 id="全能的枚举（尽量用非数值的定义枚举）"><a href="#全能的枚举（尽量用非数值的定义枚举）" class="headerlink" title="全能的枚举（尽量用非数值的定义枚举）"></a>全能的枚举（尽量用非数值的定义枚举）</h3><h3 id="变相的枚举（枚举允许在列中存储一组定义中单个值，集合列允许在列存储一组定义中N个值）"><a href="#变相的枚举（枚举允许在列中存储一组定义中单个值，集合列允许在列存储一组定义中N个值）" class="headerlink" title="变相的枚举（枚举允许在列中存储一组定义中单个值，集合列允许在列存储一组定义中N个值）"></a>变相的枚举（枚举允许在列中存储一组定义中单个值，集合列允许在列存储一组定义中N个值）</h3><h3 id="非此发明（NOT-INVENT-NULL）的NULL"><a href="#非此发明（NOT-INVENT-NULL）的NULL" class="headerlink" title="非此发明（NOT INVENT NULL）的NULL"></a>非此发明（NOT INVENT NULL）的NULL</h3><h2 id="范式和反范式"><a href="#范式和反范式" class="headerlink" title="范式和反范式"></a>范式和反范式</h2><h3 id="范式的优点和缺点"><a href="#范式的优点和缺点" class="headerlink" title="范式的优点和缺点"></a>范式的优点和缺点</h3><ul>
+<li>优点<ul>
+<li>范式化的更新操作通常比反范式化要快</li>
+<li>较好的范式化就只有很少或没有重复数据，只需要修改更少数据</li>
+<li>表通常更小，可以更好快速在内存里操作</li>
+<li>很少有多余数据意味着更少需要DISTINCT或者groupby语句</li>
+</ul>
+</li>
+<li>缺点<ul>
+<li>需要关联</li>
+</ul>
+</li>
+</ul>
+<h3 id="反范式化的优点和缺点"><a href="#反范式化的优点和缺点" class="headerlink" title="反范式化的优点和缺点"></a>反范式化的优点和缺点</h3><ul>
+<li>优点<ul>
+<li>更少的关联</li>
+</ul>
+</li>
+</ul>
+<h3 id="混用范式化和反范式化"><a href="#混用范式化和反范式化" class="headerlink" title="混用范式化和反范式化"></a>混用范式化和反范式化</h3><h2 id="缓存表和汇总表"><a href="#缓存表和汇总表" class="headerlink" title="缓存表和汇总表"></a>缓存表和汇总表</h2><h3 id="使用场景"><a href="#使用场景" class="headerlink" title="使用场景"></a>使用场景</h3><ul>
+<li>缓存表（冗余数据）汇总表（聚合数据）</li>
+<li>实时维护或定期重建</li>
+</ul>
+<h3 id="物化视图（可视化）"><a href="#物化视图（可视化）" class="headerlink" title="物化视图（可视化）"></a>物化视图（可视化）</h3><h3 id="计数器表"><a href="#计数器表" class="headerlink" title="计数器表"></a>计数器表</h3><h2 id="加快ALTER-TABLE操作的速度"><a href="#加快ALTER-TABLE操作的速度" class="headerlink" title="加快ALTER TABLE操作的速度"></a>加快ALTER TABLE操作的速度</h2><h3 id="技巧"><a href="#技巧" class="headerlink" title="技巧"></a>技巧</h3><ul>
+<li>现在不提供服务机器上alter table，然后和提供服务的主库进行切换</li>
+<li>创建新表重命名 删除表</li>
+<li>默认值变更 ALTER  TABLE ALTER COLUMN SET DEFAULT xxx</li>
+</ul>
+<h3 id="只修改-frm文件"><a href="#只修改-frm文件" class="headerlink" title="只修改.frm文件"></a>只修改.frm文件</h3><ul>
+<li>不重建表的可能情况<ul>
+<li>移除列的AUTO_INCREMENT属性</li>
+<li>增加&#x2F;移除&#x2F;更改ENUM或SET敞亮</li>
+</ul>
+</li>
+</ul>
+<h3 id="快速创建MyISAM索引"><a href="#快速创建MyISAM索引" class="headerlink" title="快速创建MyISAM索引"></a>快速创建MyISAM索引</h3><ul>
+<li>先禁用索引载入数据然后重新启用索引</li>
+</ul>
+
+  </article>
+
+  
+      
+    <div class="nexmoe-post-copyright">
+        <strong>本文作者：</strong>Tiki Xiang<br>
+        <strong>本文链接：</strong><a href="http://blog.tiki-xiang.cn/2022/03/17/%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E5%9B%9B%E7%AB%A0-Schema%E4%B8%8E%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E4%BC%98%E5%8C%96/" title="http:&#x2F;&#x2F;blog.tiki-xiang.cn&#x2F;2022&#x2F;03&#x2F;17&#x2F;%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E5%9B%9B%E7%AB%A0-Schema%E4%B8%8E%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E4%BC%98%E5%8C%96&#x2F;" target="_blank" rel="noopener">http:&#x2F;&#x2F;blog.tiki-xiang.cn&#x2F;2022&#x2F;03&#x2F;17&#x2F;%E3%80%8A%E9%AB%98%E6%80%A7%E8%83%BDMySql%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E5%9B%9B%E7%AB%A0-Schema%E4%B8%8E%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E4%BC%98%E5%8C%96&#x2F;</a><br>
+        
+            <strong>版权声明：</strong>本文采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/cn/deed.zh" target="_blank">CC BY-NC-SA 3.0 CN</a> 协议进行许可
+        
+    </div>
+
+
+  
+  
+  <div class="nexmoe-post-meta nexmoe-rainbow">
+    
+        <a class="nexmoefont icon-appstore-fill -link" href="/categories/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">读书笔记</a>
+    
+    
+        <a class="nexmoefont icon-tag-fill -none-link" href="/tags/MySql/" rel="tag">MySql</a> <a class="nexmoefont icon-tag-fill -none-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a> <a class="nexmoefont icon-tag-fill -none-link" href="/tags/%E9%AB%98%E6%80%A7%E8%83%BDMySql/" rel="tag">高性能MySql</a>
+    
+</div>
+
+  
+      <div class="nexmoe-post-footer">
+          
+      </div>
+  
+</div>
+            <div class="nexmoe-post-right">
+              <div class="nexmoe-fixed">
+                  <div class="nexmoe-tool"> 
+                    
+                      
+                        
+                          
+                          
+                              <button class="mdui-fab catalog" style="overflow:unset;">
+                                  <i class="nexmoefont icon-i-catalog"></i>
+                                  <div class="nexmoe-toc">
+                                      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Schema%E4%B8%8E%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E4%BC%98%E5%8C%96"><span class="toc-number">1.</span> <span class="toc-text">Schema与数据类型优化</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%89%E6%8B%A9%E4%BC%98%E5%8C%96%E7%9A%84%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B"><span class="toc-number">1.1.</span> <span class="toc-text">选择优化的数据类型</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8E%9F%E5%88%99"><span class="toc-number">1.1.1.</span> <span class="toc-text">原则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B4%E6%95%B0%E7%B1%BB%E5%9E%8B"><span class="toc-number">1.1.2.</span> <span class="toc-text">整数类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E6%95%B0%E7%B1%BB%E5%9E%8B"><span class="toc-number">1.1.3.</span> <span class="toc-text">实数类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AD%97%E7%AC%A6%E4%B8%B2%E7%B1%BB%E5%9E%8B"><span class="toc-number">1.1.4.</span> <span class="toc-text">字符串类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%97%A5%E6%9C%9F%E5%92%8C%E6%97%B6%E9%97%B4%E7%B1%BB%E5%9E%8B"><span class="toc-number">1.1.5.</span> <span class="toc-text">日期和时间类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%8D%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B"><span class="toc-number">1.1.6.</span> <span class="toc-text">位数据类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%89%E6%8B%A9%E6%A0%87%E8%AF%86%E7%AC%A6%EF%BC%88identityfier%EF%BC%89"><span class="toc-number">1.1.7.</span> <span class="toc-text">选择标识符（identityfier）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%89%B9%E6%AE%8A%E7%B1%BB%E5%9E%8B%E6%95%B0%E6%8D%AE"><span class="toc-number">1.1.8.</span> <span class="toc-text">特殊类型数据</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Mysql-schema%E8%AE%BE%E8%AE%A1%E4%B8%AD%E7%9A%84%E9%99%B7%E9%98%B1"><span class="toc-number">1.2.</span> <span class="toc-text">Mysql schema设计中的陷阱</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%AA%E5%A4%9A%E7%9A%84%E5%88%97%EF%BC%88%E4%BB%8E%E8%A1%8C%E7%BC%93%E5%86%B2%E4%B8%AD%E5%B0%86%E7%BC%96%E7%A0%81%E8%BF%87%E7%9A%84%E5%88%97%E8%BD%AC%E6%8D%A2%E6%88%90%E8%A1%8C%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E7%9A%84%E6%93%8D%E4%BD%9C%E4%BB%A3%E4%BB%B7%E9%9D%9E%E5%B8%B8%E9%AB%98%EF%BC%89"><span class="toc-number">1.2.1.</span> <span class="toc-text">太多的列（从行缓冲中将编码过的列转换成行数据结构的操作代价非常高）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%AA%E5%A4%9A%E7%9A%84%E5%85%B3%E8%81%94-%EF%BC%88mysql%E9%99%90%E5%88%B6%E4%BA%86%E5%85%B3%E8%81%94%E6%93%8D%E4%BD%9C%E6%9C%80%E5%A4%9A%E5%8F%AA%E8%83%BD61%E5%BC%A0%E8%A1%A8%E3%80%82EAV-%E5%AE%9E%E4%BD%93-%E5%B1%9E%E6%80%A7-%E5%80%BC-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E9%9C%80%E8%A6%81%E8%AE%B8%E5%A4%9A%E8%87%AA%E5%85%B3%E8%81%94%EF%BC%8C%E6%89%80%E4%BB%A5%E9%9D%9E%E5%B8%B8%E7%B3%9F%E7%B3%95%EF%BC%8C%E8%A7%A3%E6%9E%90%E4%BC%98%E5%8C%96%E6%9F%A5%E8%AF%A2%E4%BB%A3%E4%BB%B7%E9%97%AE%E9%A2%98%E6%98%8E%E6%98%BE%EF%BC%8C%E7%BB%8F%E9%AA%8C%E6%B3%95%E5%88%99%E5%8D%95%E4%B8%AA%E6%9F%A5%E8%AF%A2%E6%9C%80%E5%A5%BD%E5%9C%A812%E4%B8%AA%E8%A1%A8%E4%BB%A5%E5%86%85%E5%85%B3%E8%81%94%EF%BC%89"><span class="toc-number">1.2.2.</span> <span class="toc-text">太多的关联 （mysql限制了关联操作最多只能61张表。EAV(实体-属性-值)设计模式需要许多自关联，所以非常糟糕，解析优化查询代价问题明显，经验法则单个查询最好在12个表以内关联）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%A8%E8%83%BD%E7%9A%84%E6%9E%9A%E4%B8%BE%EF%BC%88%E5%B0%BD%E9%87%8F%E7%94%A8%E9%9D%9E%E6%95%B0%E5%80%BC%E7%9A%84%E5%AE%9A%E4%B9%89%E6%9E%9A%E4%B8%BE%EF%BC%89"><span class="toc-number">1.2.3.</span> <span class="toc-text">全能的枚举（尽量用非数值的定义枚举）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%98%E7%9B%B8%E7%9A%84%E6%9E%9A%E4%B8%BE%EF%BC%88%E6%9E%9A%E4%B8%BE%E5%85%81%E8%AE%B8%E5%9C%A8%E5%88%97%E4%B8%AD%E5%AD%98%E5%82%A8%E4%B8%80%E7%BB%84%E5%AE%9A%E4%B9%89%E4%B8%AD%E5%8D%95%E4%B8%AA%E5%80%BC%EF%BC%8C%E9%9B%86%E5%90%88%E5%88%97%E5%85%81%E8%AE%B8%E5%9C%A8%E5%88%97%E5%AD%98%E5%82%A8%E4%B8%80%E7%BB%84%E5%AE%9A%E4%B9%89%E4%B8%ADN%E4%B8%AA%E5%80%BC%EF%BC%89"><span class="toc-number">1.2.4.</span> <span class="toc-text">变相的枚举（枚举允许在列中存储一组定义中单个值，集合列允许在列存储一组定义中N个值）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%9D%9E%E6%AD%A4%E5%8F%91%E6%98%8E%EF%BC%88NOT-INVENT-NULL%EF%BC%89%E7%9A%84NULL"><span class="toc-number">1.2.5.</span> <span class="toc-text">非此发明（NOT INVENT NULL）的NULL</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%8C%83%E5%BC%8F%E5%92%8C%E5%8F%8D%E8%8C%83%E5%BC%8F"><span class="toc-number">1.3.</span> <span class="toc-text">范式和反范式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%8C%83%E5%BC%8F%E7%9A%84%E4%BC%98%E7%82%B9%E5%92%8C%E7%BC%BA%E7%82%B9"><span class="toc-number">1.3.1.</span> <span class="toc-text">范式的优点和缺点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%8D%E8%8C%83%E5%BC%8F%E5%8C%96%E7%9A%84%E4%BC%98%E7%82%B9%E5%92%8C%E7%BC%BA%E7%82%B9"><span class="toc-number">1.3.2.</span> <span class="toc-text">反范式化的优点和缺点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B7%B7%E7%94%A8%E8%8C%83%E5%BC%8F%E5%8C%96%E5%92%8C%E5%8F%8D%E8%8C%83%E5%BC%8F%E5%8C%96"><span class="toc-number">1.3.3.</span> <span class="toc-text">混用范式化和反范式化</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BC%93%E5%AD%98%E8%A1%A8%E5%92%8C%E6%B1%87%E6%80%BB%E8%A1%A8"><span class="toc-number">1.4.</span> <span class="toc-text">缓存表和汇总表</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">1.4.1.</span> <span class="toc-text">使用场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%89%A9%E5%8C%96%E8%A7%86%E5%9B%BE%EF%BC%88%E5%8F%AF%E8%A7%86%E5%8C%96%EF%BC%89"><span class="toc-number">1.4.2.</span> <span class="toc-text">物化视图（可视化）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%A1%E6%95%B0%E5%99%A8%E8%A1%A8"><span class="toc-number">1.4.3.</span> <span class="toc-text">计数器表</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8A%A0%E5%BF%ABALTER-TABLE%E6%93%8D%E4%BD%9C%E7%9A%84%E9%80%9F%E5%BA%A6"><span class="toc-number">1.5.</span> <span class="toc-text">加快ALTER TABLE操作的速度</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8A%80%E5%B7%A7"><span class="toc-number">1.5.1.</span> <span class="toc-text">技巧</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%AA%E4%BF%AE%E6%94%B9-frm%E6%96%87%E4%BB%B6"><span class="toc-number">1.5.2.</span> <span class="toc-text">只修改.frm文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BF%AB%E9%80%9F%E5%88%9B%E5%BB%BAMyISAM%E7%B4%A2%E5%BC%95"><span class="toc-number">1.5.3.</span> <span class="toc-text">快速创建MyISAM索引</span></a></li></ol></li></ol></li></ol>
+                                  </div>
+                              </button>
+                          
+                          
+                      
+                    
+                      <a href="#nexmoe-content" class="toc-link" aria-label="回到顶部" title="top"><button class="mdui-fab mdui-ripple"><i class="nexmoefont icon-caret-top"></i></button></a>
+                  </div>
+              </div>
+            </div>
+        </div>
+    </div>
+     
+    <div id="nexmoe-search-space">
+        <div class="search-container">
+            <div class="search-header">
+                <div class="search-input-container">
+                    <input class="search-input" type="text" placeholder="搜索" oninput="sinput();">
+                </div>
+                <a class="search-close" onclick="sclose();">×</a>
+            </div>
+            <div class="search-body"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/combine/npm/lazysizes@5.1.0/lazysizes.min.js,npm/mdui@0.4.3/dist/js/mdui.min.js?v=1"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+
+ 
+
+<script async src="/js/app.js?v=1647517914903"></script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/js/jquery.justifiedGallery.min.js"></script>
+<script>
+	$(".justified-gallery").justifiedGallery({
+		rowHeight: 160,
+		margins: 10,
+	});
+</script>
+
+
+    
+
+
+
+
+
+</body>
+
+</html>
