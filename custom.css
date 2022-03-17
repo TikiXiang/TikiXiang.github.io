@@ -1,0 +1,32 @@
+#nexmoe-header .nexmoe-list .nexmoe-list-item.true {
+    opacity: 0.9;
+    background: #669708;
+    box-shadow: 0 2px 12px #669708;
+}
+
+.nexmoe-rainbow a:nth-child(7n+1) {
+    background-color: #669708;
+    color: #ffffff;
+}
+
+#nexmoe-header .nexmoe-widget-wrap .nexmoe-widget-title {
+    font-size: 1em;
+    font-weight: 400;
+    padding: 24px 18px 12px;
+    margin: 0;
+    color: #669708;
+}
+
+#nexmoe-header .nexmoe-widget-wrap .nexmoe-widget .category-list-count, #nexmoe-header .nexmoe-widget-wrap .nexmoe-widget .archive-list-count {
+    background-color: #669708;
+    display: inline-block;
+    width: 26px;
+    height: 26px;
+    line-height: 26px;
+    text-align: center;
+    border-radius: 100%;
+    color: #ffffff;
+    position: absolute;
+    right: 18px;
+    top: 10px;
+}
